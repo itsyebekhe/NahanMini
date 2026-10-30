@@ -46,6 +46,7 @@ export default {
             if (سطر.key === "شناسه_تایید") شناسه_تایید = سطر.value;
             if (سطر.key === "آی_پی_های_پروکسی") آی_پی_های_پروکسی = تفکیک_ارایه(سطر.value);
             if (سطر.key === "آدرس_های_تمیز") آدرس_های_تمیز = تفکیک_ارایه(سطر.value);
+            if (سطر.key === "رمز_عبور_مدیریت") رمز_عبور_مدیریت = سطر.value;
             if (سطر.key === "نگاشت_گره_ها") {
               try { نگاشت_گره_ها = JSON.parse(سطر.value); } catch {}
             }
@@ -456,6 +457,9 @@ async function مدیریت_تنظیمات(درخواست, env) {
       if (ورودی.آی_پی_های_پروکسی) آی_پی_های_پروکسی = تفکیک_ارایه(ورودی.آی_پی_های_پروکسی);
       if (ورودی.آدرس_های_تمیز) آدرس_های_تمیز = تفکیک_ارایه(ورودی.آدرس_های_تمیز);
       if (Array.isArray(ورودی.نگاشت_گره_ها)) نگاشت_گره_ها = ورودی.نگاشت_گره_ها;
+      if (ورودی.رمز_عبور_جدید && ورودی.رمز_عبور_جدید.trim() !== "") {
+        رمز_عبور_مدیریت = ورودی.رمز_عبور_جدید.trim();
+      }
 
       if (env.DB) {
         await env.DB.batch([
@@ -465,6 +469,7 @@ async function مدیریت_تنظیمات(درخواست, env) {
           env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("آی_پی_های_پروکسی", آی_پی_های_پروکسی.join("\n")),
           env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("آدرس_های_تمیز", آدرس_های_تمیز.join("\n")),
           env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("نگاشت_گره_ها", JSON.stringify(نگاشت_گره_ها)),
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("رمز_عبور_مدیریت", رمز_عبور_مدیریت),
         ]);
       }
 

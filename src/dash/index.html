@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>داشبورد مدیریت پروکسی | Neobrutalism</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,63 +43,113 @@
       padding: 0;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
+      -webkit-tap-highlight-color: transparent;
     }
     body {
       background-color: var(--surface);
       background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
       background-size: 24px 24px;
-      padding: 32px 16px;
+      padding: 16px 12px 100px;
       line-height: 1.5;
     }
     .container {
-      max-width: 1040px;
+      max-width: 960px;
       margin: 0 auto;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 32px;
-      padding-bottom: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
       border-bottom: 3px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
     }
     .header h1 {
-      font-size: 2.1875rem;
+      font-size: 1.6rem;
       font-weight: 900;
       letter-spacing: -0.03em;
     }
     .header-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
+
+    /* استایل Dock / Tab Navigation */
+    .dock-nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .dock-nav::-webkit-scrollbar { display: none; }
+    .dock-item {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 3px 3px 0px var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.1s ease;
+    }
+    .dock-item:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px var(--border);
+    }
+    .dock-item.active {
+      background: var(--primary);
+      color: #1C293C;
+      box-shadow: 1px 1px 0px var(--border);
+      transform: translate(2px, 2px);
+    }
+
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
     .card {
       background: var(--card-bg);
       border: 3px solid var(--border);
       border-radius: var(--radius-md);
-      box-shadow: 6px 6px 0px var(--border);
-      padding: 24px;
-      margin-bottom: 24px;
+      box-shadow: 5px 5px 0px var(--border);
+      padding: 20px;
+      margin-bottom: 20px;
     }
-    [data-theme="dark"] .card {
-      outline: 1px solid #2B3040;
-    }
+    [data-theme="dark"] .card { outline: 1px solid #2B3040; }
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       border-bottom: 2px dashed var(--border);
-      padding-bottom: 12px;
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
     .card-title {
-      font-size: 1.3125rem;
+      font-size: 1.15rem;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
     .badge {
       display: inline-block;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
       background: var(--primary);
@@ -109,22 +159,19 @@
       padding: 3px 8px;
       box-shadow: 2px 2px 0px var(--border);
     }
-    .badge-secondary {
-      background: var(--secondary);
-      color: #FFFFFF;
-    }
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
     @media(max-width: 768px) {
       .grid-2 { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.3rem; }
     }
     label {
       display: block;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
       margin-bottom: 6px;
@@ -137,28 +184,24 @@
       background: var(--input-bg);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      box-shadow: 3px 3px 0px var(--border);
+      box-shadow: 2px 2px 0px var(--border);
       outline: none;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     [data-theme="dark"] input, [data-theme="dark"] textarea, [data-theme="dark"] select {
       outline: 1px solid #2B3040;
     }
     textarea {
-      height: 110px;
+      height: 120px;
       resize: vertical;
       line-height: 1.6;
-    }
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--secondary);
-      box-shadow: 4px 4px 0px var(--secondary);
     }
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 10px 18px;
-      font-size: 0.875rem;
+      padding: 10px 16px;
+      font-size: 0.8125rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.02em;
@@ -169,10 +212,11 @@
       background: var(--primary);
       color: #1C293C;
       transition: all 0.1s ease;
+      min-height: 42px;
     }
     .btn:hover {
       transform: translate(-1px, -1px);
-      box-shadow: 5px 5px 0px var(--border);
+      box-shadow: 4px 4px 0px var(--border);
     }
     .btn:active {
       transform: translate(2px, 2px);
@@ -182,13 +226,12 @@
       background: var(--card-bg);
       color: var(--text);
     }
-    [data-theme="dark"] .btn-secondary {
-      outline: 1px solid #2B3040;
-    }
+    [data-theme="dark"] .btn-secondary { outline: 1px solid #2B3040; }
     .btn-danger {
       background: var(--danger);
       color: #FFFFFF;
     }
+
     .sub-item {
       display: flex;
       justify-content: space-between;
@@ -196,37 +239,50 @@
       background: var(--surface);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      box-shadow: 3px 3px 0px var(--border);
-      padding: 12px 16px;
+      box-shadow: 2px 2px 0px var(--border);
+      padding: 12px;
       margin-bottom: 12px;
-      gap: 12px;
-    }
-    [data-theme="dark"] .sub-item {
-      outline: 1px solid #2B3040;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     .sub-item span {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.8125rem;
       word-break: break-all;
     }
-    table {
+
+    /* فرم واکنش‌گرا نودها برای موبایل */
+    .node-form-grid {
+      display: grid;
+      grid-template-columns: 2fr 2fr 1.5fr 1.5fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+    @media (max-width: 768px) {
+      .node-form-grid {
+        grid-template-columns: 1fr;
+      }
+      .node-form-grid .btn { width: 100%; }
+    }
+
+    .table-container {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 16px;
+      overflow-x: auto;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      overflow: hidden;
       box-shadow: 3px 3px 0px var(--border);
+      margin-top: 14px;
     }
-    [data-theme="dark"] table {
-      outline: 1px solid #2B3040;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 500px;
     }
     th, td {
-      padding: 12px;
+      padding: 10px 12px;
       text-align: right;
-      border-bottom: 2px solid var(--border);
-      font-size: 0.875rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
     }
     th {
       background: var(--surface);
@@ -235,47 +291,47 @@
       text-transform: uppercase;
       font-size: 0.75rem;
     }
-    tr:last-child td {
-      border-bottom: none;
+
+    /* دکمه شناور ذخیره در موبایل */
+    .floating-save {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+      z-index: 50;
     }
     .btn-save {
       width: 100%;
-      padding: 16px;
-      font-size: 1.125rem;
+      padding: 14px;
+      font-size: 1rem;
       background: var(--primary);
       color: #1C293C;
-      margin-top: 16px;
-      box-shadow: 5px 5px 0px var(--border);
+      box-shadow: 4px 4px 0px var(--border);
     }
+
     .toast {
-      margin-top: 16px;
+      margin-bottom: 14px;
       padding: 12px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       font-weight: 700;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       text-align: center;
       display: none;
-      box-shadow: 3px 3px 0px var(--border);
+      box-shadow: 2px 2px 0px var(--border);
     }
-    .toast.success {
-      display: block;
-      background: #14532D;
-      color: #BBF7D0;
-    }
-    .toast.error {
-      display: block;
-      background: #7F1D1D;
-      color: #FECACA;
-    }
+    .toast.success { display: block; background: #14532D; color: #BBF7D0; }
+    .toast.error { display: block; background: #7F1D1D; color: #FECACA; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <div>
-        <span class="badge">CONTROLLER</span>
+        <span class="badge">SYSTEM DOCK</span>
         <h1>پنل مدیریت سرور</h1>
       </div>
       <div class="header-actions">
@@ -284,106 +340,151 @@
       </div>
     </div>
 
-    <!-- لینک‌های اشتراک -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">لینک‌های اتصال کاربران</span>
-        <span class="badge badge-secondary">SUBSCRIPTIONS</span>
-      </div>
-      <div id="subLinks">در حال بارگذاری لینک‌ها...</div>
+    <div id="toast" class="toast"></div>
+
+    <!-- منوی تب/داک با اسکرول افقی روی موبایل -->
+    <div class="dock-nav">
+      <div class="dock-item active" onclick="switchTab('tab-subs', this)">🔗 لینک‌ها</div>
+      <div class="dock-item" onclick="switchTab('tab-core', this)">⚙️ هسته</div>
+      <div class="dock-item" onclick="switchTab('tab-ips', this)">🌐 مخزن IP</div>
+      <div class="dock-item" onclick="switchTab('tab-nodes', this)">🔀 نودها</div>
+      <div class="dock-item" onclick="switchTab('tab-security', this)">🔒 امنیت</div>
     </div>
 
-    <!-- پیکربندی هسته -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">تنظیمات هسته</span>
-        <span class="badge">CORE CONFIG</span>
-      </div>
-      <div class="grid-2">
-        <div>
-          <label>مسیر اشتراک (SUB PATH)</label>
-          <input type="text" id="subPath" />
+    <!-- تب ۱: لینک‌های اشتراک -->
+    <div id="tab-subs" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">لینک‌های اتصال کاربران</span>
+          <span class="badge">LINKS</span>
         </div>
-        <div>
-          <label>شناسه تایید (UUID)</label>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="uuid" />
-            <button class="btn btn-secondary" style="height:42px; padding:0 12px;" onclick="genUUID()">تولید</button>
+        <div id="subLinks">در حال دریافت لینک‌ها...</div>
+      </div>
+    </div>
+
+    <!-- تب ۲: هسته و استتار -->
+    <div id="tab-core" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">تنظیمات اصلی هسته</span>
+          <span class="badge">CORE</span>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>مسیر اشتراک (SUB PATH)</label>
+            <input type="text" id="subPath" />
+          </div>
+          <div>
+            <label>شناسه تایید (UUID)</label>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="uuid" />
+              <button class="btn btn-secondary" style="height:42px; padding:0 12px;" onclick="genUUID()">تولید</button>
+            </div>
+          </div>
+        </div>
+        <label>وب‌سایت استتار (FAKE WEB URL)</label>
+        <input type="text" id="fakeWeb" placeholder="https://example.com" />
+      </div>
+    </div>
+
+    <!-- تب ۳: مخزن آی‌پی‌ها -->
+    <div id="tab-ips" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">مخزن آی‌پی‌های چندگانه</span>
+          <span class="badge">POOLS</span>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>آدرس‌های تمیز (CLEAN IPS - سطر به سطر)</label>
+            <textarea id="cleanIps" placeholder="openai.com&#10;104.16.0.1"></textarea>
+          </div>
+          <div>
+            <label>پروکسی‌های تی‌سی‌پی (PROXY IPS - سطر به سطر)</label>
+            <textarea id="proxyIps" placeholder="proxyip.cmliussss.net&#10;1.2.3.4:443"></textarea>
           </div>
         </div>
       </div>
-      <label>وب‌سایت استتار (FAKE WEB URL)</label>
-      <input type="text" id="fakeWeb" placeholder="https://example.com" />
     </div>
 
-    <!-- آی‌پی‌های چندگانه -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">مخزن آی‌پی‌های تمیز و پروکسی</span>
-        <span class="badge">IP POOLS</span>
-      </div>
-      <div class="grid-2">
-        <div>
-          <label>آدرس‌های تمیز کلودفلر (CLEAN IPS - سطر به سطر)</label>
-          <textarea id="cleanIps" placeholder="openai.com&#10;104.16.0.1"></textarea>
+    <!-- تب ۴: نودها و دسته‌بندی -->
+    <div id="tab-nodes" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">نگاشت و دسته‌بندی نودها</span>
+          <button class="btn btn-secondary" onclick="autoPairNodes()">⚡ جفت‌سازی سریع</button>
         </div>
-        <div>
-          <label>آی‌پی‌های پروکسی اتصال تی‌سی‌پی (PROXY IPS - سطر به سطر)</label>
-          <textarea id="proxyIps" placeholder="proxyip.cmliussss.net&#10;1.2.3.4:443"></textarea>
+
+        <div class="node-form-grid">
+          <div>
+            <label>Clean IP</label>
+            <select id="mapCleanIp"></select>
+          </div>
+          <div>
+            <label>Proxy IP</label>
+            <select id="mapProxyIp"></select>
+          </div>
+          <div>
+            <label>نام نود</label>
+            <input type="text" id="mapName" placeholder="نود ۱" />
+          </div>
+          <div>
+            <label>گروه / اپراتور</label>
+            <input type="text" id="mapGroup" placeholder="ایرانسل" />
+          </div>
+          <div>
+            <button class="btn" onclick="addNodeMapping()">+ افزودن</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>نام گره</th>
+                <th>گروه</th>
+                <th>Clean IP</th>
+                <th>Proxy IP</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="mappingTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- نگاشت و دسته‌بندی نودها -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">جفت‌سازی و گروه‌بندی نودها</span>
-        <button class="btn btn-secondary" onclick="autoPairNodes()">⚡ جفت‌سازی خودکار</button>
+    <!-- تب ۵: امنیت و تغییر رمز عبور -->
+    <div id="tab-security" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">تغییر رمز عبور مدیریت</span>
+          <span class="badge">SECURITY</span>
+        </div>
+        <label>رمز عبور جدید:</label>
+        <input type="password" id="newPassword" placeholder="رمز عبور قوی جدید..." />
+        <label>تکرار رمز عبور جدید:</label>
+        <input type="password" id="confirmPassword" placeholder="تکرار رمز عبور جدید..." />
+        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:14px;">در صورت خالی گذاشتن این فیلد، رمز عبور پیشین بدون تغییر باقی می‌ماند.</p>
       </div>
-
-      <div style="display:grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr auto; gap: 8px; align-items: end;">
-        <div>
-          <label>Clean IP</label>
-          <select id="mapCleanIp" style="margin:0;"></select>
-        </div>
-        <div>
-          <label>Proxy IP</label>
-          <select id="mapProxyIp" style="margin:0;"></select>
-        </div>
-        <div>
-          <label>نام گره</label>
-          <input type="text" id="mapName" placeholder="نود ۱" style="margin:0;" />
-        </div>
-        <div>
-          <label>گروه</label>
-          <input type="text" id="mapGroup" placeholder="ایرانسل" style="margin:0;" />
-        </div>
-        <div>
-          <button class="btn" onclick="addNodeMapping()">+ افزودن</button>
-        </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>نام گره</th>
-            <th>گروه / اپراتور</th>
-            <th>Clean IP</th>
-            <th>Proxy IP</th>
-            <th>عملیات</th>
-          </tr>
-        </thead>
-        <tbody id="mappingTableBody"></tbody>
-      </table>
     </div>
 
-    <button class="btn btn-save" onclick="saveSettings()">ذخیره تمامی تغییرات 💾</button>
-    <div id="toast" class="toast"></div>
+    <!-- نوار ثابت ذخیره تغییرات -->
+    <div class="floating-save">
+      <button class="btn btn-save" onclick="saveSettings()">ذخیره تمامی تغییرات 💾</button>
+    </div>
   </div>
 
   <script>
     const apiPath = window.location.pathname.replace(/\/dash$/, '/api/settings');
     let mappedNodes = [];
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.dock-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      el.classList.add('active');
+    }
 
     async function loadData() {
       try {
@@ -405,7 +506,7 @@
         updateDropdowns();
         renderMappingTable();
       } catch (err) {
-        showToast('خطا در بارگذاری اطلاعات.', 'error');
+        showToast('خطا در دریافت اطلاعات سرور.', 'error');
       }
     }
 
@@ -445,7 +546,7 @@
     function renderMappingTable() {
       const tbody = document.getElementById('mappingTableBody');
       if (mappedNodes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; font-family:'JetBrains Mono';">هیچ گره‌ای تنظیم نشده است.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:16px;">گره‌ای جفت‌سازی نشده است.</td></tr>`;
         return;
       }
       tbody.innerHTML = mappedNodes.map((n, i) => `
@@ -454,7 +555,7 @@
           <td><span class="badge">${n.group || 'عمومی'}</span></td>
           <td><code style="font-family:'JetBrains Mono';">${n.cleanIp}</code></td>
           <td><code style="font-family:'JetBrains Mono';">${n.proxyIp || '---'}</code></td>
-          <td><button class="btn btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteNode(${i})">حذف</button></td>
+          <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem; min-height:30px;" onclick="deleteNode(${i})">حذف</button></td>
         </tr>
       `).join('');
     }
@@ -475,7 +576,7 @@
     function autoPairNodes() {
       const cleanList = document.getElementById('cleanIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
       const proxyList = document.getElementById('proxyIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
-      if (cleanList.length === 0) return alert('حداقل یک Clean IP مشخص کنید.');
+      if (cleanList.length === 0) return alert('ابتدا Clean IP وارد کنید.');
 
       mappedNodes = cleanList.map((cleanIp, i) => ({
         cleanIp,
@@ -496,14 +597,23 @@
     }
 
     async function saveSettings() {
-      showToast('در حال ذخیره تنظیمات...', '');
+      const newPass = document.getElementById('newPassword').value;
+      const confirmPass = document.getElementById('confirmPassword').value;
+
+      if (newPass !== "" && newPass !== confirmPass) {
+        showToast('✕ تکرار رمز عبور جدید همخوانی ندارد.', 'error');
+        return;
+      }
+
+      showToast('در حال ذخیره اطلاعات...', '');
       const body = {
         مسیر_اشتراک: document.getElementById('subPath').value.trim(),
         وب_سایت_استتار: document.getElementById('fakeWeb').value.trim(),
         شناسه_تایید: document.getElementById('uuid').value.trim(),
         آدرس_های_تمیز: document.getElementById('cleanIps').value.split('\n').map(s=>s.trim()).filter(Boolean),
         آی_پی_های_پروکسی: document.getElementById('proxyIps').value.split('\n').map(s=>s.trim()).filter(Boolean),
-        نگاشت_گره_ها: mappedNodes
+        نگاشت_گره_ها: mappedNodes,
+        رمز_عبور_جدید: newPass.trim() !== "" ? newPass.trim() : undefined
       };
 
       try {
@@ -513,19 +623,21 @@
           body: JSON.stringify(body)
         });
         if (res.ok) {
-          showToast('✓ تنظیمات با موفقیت در دیتابیس D1 ذخیره شد!', 'success');
+          showToast('✓ تنظیمات با موفقیت ذخیره شد!', 'success');
+          document.getElementById('newPassword').value = '';
+          document.getElementById('confirmPassword').value = '';
           loadData();
         } else {
-          showToast('✕ خطا در ذخیره تنظیمات.', 'error');
+          showToast('✕ خطا در ذخیره اطلاعات.', 'error');
         }
       } catch {
-        showToast('✕ خطا در اتصال به سرور.', 'error');
+        showToast('✕ خطا در برقراری ارتباط با سرور.', 'error');
       }
     }
 
     function copyText(txt) {
       navigator.clipboard.writeText(txt);
-      showToast('✓ لینک اشتراک با موفقیت کپی شد!', 'success');
+      showToast('✓ لینک اشتراک کپی شد!', 'success');
     }
 
     function showToast(msg, type) {
