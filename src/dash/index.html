@@ -49,7 +49,7 @@
       background-color: var(--surface);
       background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
       background-size: 24px 24px;
-      padding: 16px 12px 100px;
+      padding: 16px 12px 110px;
       line-height: 1.5;
     }
     .container {
@@ -67,7 +67,7 @@
       gap: 12px;
     }
     .header h1 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       font-weight: 900;
       letter-spacing: -0.03em;
     }
@@ -76,7 +76,42 @@
       gap: 8px;
     }
 
-    /* استایل Dock / Tab Navigation */
+    /* بنر هشدار رمز پیش‌فرض */
+    .alert-banner {
+      display: none;
+      background: #FEF3C7;
+      border: 3px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 4px 4px 0px var(--border);
+      padding: 16px;
+      margin-bottom: 18px;
+      color: #92400E;
+    }
+    [data-theme="dark"] .alert-banner {
+      background: #78350F;
+      color: #FEF3C7;
+      outline: 1px solid #B45309;
+    }
+    .alert-banner-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .alert-banner h3 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: inherit;
+    }
+    .alert-banner p {
+      font-size: 0.8125rem;
+      margin: 0;
+      color: inherit;
+    }
+
+    /* نویگیشن تب دسکتاپ */
     .dock-nav {
       display: flex;
       gap: 8px;
@@ -113,6 +148,46 @@
       color: #1C293C;
       box-shadow: 1px 1px 0px var(--border);
       transform: translate(2px, 2px);
+    }
+
+    /* نوبار پایین در موبایل (Bottom Navbar) */
+    @media (max-width: 768px) {
+      body {
+        padding-bottom: 160px;
+      }
+      .dock-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        padding: 8px 10px 14px;
+        background: var(--card-bg);
+        border-top: 3px solid var(--border);
+        box-shadow: 0 -4px 0px rgba(0,0,0,0.15);
+        z-index: 100;
+        display: flex;
+        justify-content: space-around;
+        gap: 6px;
+        border-radius: 0;
+      }
+      [data-theme="dark"] .dock-nav {
+        outline: 1px solid #2B3040;
+      }
+      .dock-item {
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        padding: 8px 4px;
+        font-size: 0.6875rem;
+        border: 2px solid var(--border);
+        box-shadow: 2px 2px 0px var(--border);
+        text-align: center;
+      }
+      .dock-item .icon {
+        font-size: 1.15rem;
+      }
     }
 
     .tab-content {
@@ -166,7 +241,7 @@
     }
     @media(max-width: 768px) {
       .grid-2 { grid-template-columns: 1fr; }
-      .header h1 { font-size: 1.3rem; }
+      .header h1 { font-size: 1.25rem; }
     }
     label {
       display: block;
@@ -251,7 +326,7 @@
       word-break: break-all;
     }
 
-    /* فرم واکنش‌گرا نودها برای موبایل */
+    /* فرم واکنش‌گرای نودها */
     .node-form-grid {
       display: grid;
       grid-template-columns: 2fr 2fr 1.5fr 1.5fr auto;
@@ -292,7 +367,7 @@
       font-size: 0.75rem;
     }
 
-    /* دکمه شناور ذخیره در موبایل */
+    /* دکمه شناور ذخیره تغییرات */
     .floating-save {
       position: fixed;
       bottom: 16px;
@@ -301,6 +376,13 @@
       max-width: 960px;
       margin: 0 auto;
       z-index: 50;
+    }
+    @media (max-width: 768px) {
+      .floating-save {
+        bottom: 74px;
+        left: 12px;
+        right: 12px;
+      }
     }
     .btn-save {
       width: 100%;
@@ -342,17 +424,43 @@
 
     <div id="toast" class="toast"></div>
 
-    <!-- منوی تب/داک با اسکرول افقی روی موبایل -->
-    <div class="dock-nav">
-      <div class="dock-item active" onclick="switchTab('tab-subs', this)">🔗 لینک‌ها</div>
-      <div class="dock-item" onclick="switchTab('tab-core', this)">⚙️ هسته</div>
-      <div class="dock-item" onclick="switchTab('tab-ips', this)">🌐 مخزن IP</div>
-      <div class="dock-item" onclick="switchTab('tab-nodes', this)">🔀 نودها</div>
-      <div class="dock-item" onclick="switchTab('tab-security', this)">🔒 امنیت</div>
+    <!-- ناوبری Dock (دسکتاپ: بالا / موبایل: پایین فیکس) -->
+    <div class="dock-nav" id="dockNav">
+      <div class="dock-item active" onclick="switchTab('tab-subs', this)">
+        <span class="icon">🔗</span>
+        <span>لینک‌ها</span>
+      </div>
+      <div class="dock-item" onclick="switchTab('tab-core', this)">
+        <span class="icon">⚙️</span>
+        <span>هسته</span>
+      </div>
+      <div class="dock-item" onclick="switchTab('tab-ips', this)">
+        <span class="icon">🌐</span>
+        <span>مخزن IP</span>
+      </div>
+      <div class="dock-item" onclick="switchTab('tab-nodes', this)">
+        <span class="icon">🔀</span>
+        <span>نودها</span>
+      </div>
+      <div class="dock-item" onclick="switchTab('tab-security', this)">
+        <span class="icon">🔒</span>
+        <span>امنیت</span>
+      </div>
     </div>
 
     <!-- تب ۱: لینک‌های اشتراک -->
     <div id="tab-subs" class="tab-content active">
+      <!-- هشدار امنیتی تغییر رمز پیش‌فرض -->
+      <div id="defaultPassAlert" class="alert-banner">
+        <div class="alert-banner-content">
+          <div>
+            <h3>⚠️ هشدار امنیتی: رمز عبور پیش‌فرض فعال است!</h3>
+            <p>رمز عبور مدیریت در وضعیت پیش‌فرض (<code>admin123</code>) قرار دارد. جهت جلوگیری از دسترسی غیرمجاز، فوراً آن را تغییر دهید.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="goToSecurityTab()">تغییر رمز عبور ➔</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <span class="card-title">لینک‌های اتصال کاربران</span>
