@@ -2,69 +2,308 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>داشبورد مدیریت</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>داشبورد مدیریت پیشرفته پروکسی</title>
   <style>
-    body { font-family: sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; padding: 40px 20px; }
-    .card { background: #1e1e1e; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    h2 { margin-top: 0; text-align: center; }
-    label { display: block; margin-top: 15px; font-size: 14px; color: #aaa; }
-    input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; margin-top: 25px; background: #0070f3; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-    button:hover { background: #0051b3; }
-    #status { margin-top: 15px; text-align: center; font-size: 14px; }
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --input-bg: #0f172a;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", sans-serif; }
+    body { margin: 0; padding: 25px 15px; background: var(--bg); color: var(--text); }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    h1 { margin: 0; font-size: 24px; font-weight: 700; }
+    .btn-logout { background: #334155; color: var(--text); padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 22px; margin-bottom: 22px; }
+    .card-title { margin-top: 0; margin-bottom: 15px; font-size: 18px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
+    input, textarea, select {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);
+      background: var(--input-bg); color: #fff; font-size: 14px; outline: none; margin-bottom: 12px;
+    }
+    textarea { height: 100px; resize: vertical; line-height: 1.5; }
+    .sub-item { display: flex; align-items: center; justify-content: space-between; background: var(--input-bg); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-border); margin-bottom: 10px; }
+    .sub-item span { font-size: 14px; word-break: break-all; }
+    .btn { padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; background: var(--primary); color: #fff; transition: 0.2s; }
+    .btn:hover { background: var(--primary-hover); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-secondary { background: #475569; }
+    .btn-secondary:hover { background: #64748b; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+    th, td { padding: 10px; text-align: right; border-bottom: 1px solid var(--card-border); }
+    th { color: var(--text-muted); font-weight: 500; }
+    .btn-save { width: 100%; padding: 14px; font-size: 16px; font-weight: 600; margin-top: 10px; }
+    .toast { text-align: center; margin-top: 15px; font-size: 15px; min-height: 22px; }
+    .toast.success { color: #4ade80; }
+    .toast.error { color: #f87171; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>تنظیمات پروکسی</h2>
-    <label>مسیر اشتراک</label>
-    <input id="subPath" type="text" />
-    <label>وب‌سایت استتار (Fake Web)</label>
-    <input id="fakeWeb" type="text" />
-    <label>شناسه تایید (UUID)</label>
-    <input id="uuid" type="text" />
-    <label>آی‌پی پروکسی (Proxy IP)</label>
-    <input id="proxyIp" type="text" />
-    <label>مقصد پیش‌فرض (Host / Clean IP)</label>
-    <input id="defaultDomain" type="text" />
-    <button onclick="saveSettings()">ذخیره تنظیمات</button>
-    <div id="status"></div>
+  <div class="container">
+    <div class="header">
+      <h1>داشبورد مدیریت پیشرفته</h1>
+      <button class="btn-logout" onclick="logout()">خروج</button>
+    </div>
+
+    <!-- لینک‌های اشتراک -->
+    <div class="card">
+      <div class="card-title">لینک‌های اتصال و اشتراک کاربران</div>
+      <div id="subLinks">در حال بارگذاری لینک‌ها...</div>
+    </div>
+
+    <!-- تنظیمات اصلی -->
+    <div class="card">
+      <div class="card-title">تنظیمات اصلی سرور</div>
+      <div class="grid-2">
+        <div>
+          <label>مسیر اشتراک (Sub Path)</label>
+          <input type="text" id="subPath" />
+        </div>
+        <div>
+          <label>شناسه تایید (UUID)</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="uuid" />
+            <button class="btn btn-secondary" style="height:42px;" onclick="genUUID()">تولید</button>
+          </div>
+        </div>
+      </div>
+      <label>وب‌سایت استتار (Fake Web)</label>
+      <input type="text" id="fakeWeb" placeholder="https://example.com" />
+    </div>
+
+    <!-- مدیریت آی‌پی‌های تمیز و پروکسی -->
+    <div class="card">
+      <div class="card-title">مدیریت آی‌پی‌های چندگانه (هر آی‌پی در یک سطر)</div>
+      <div class="grid-2">
+        <div>
+          <label>آدرس‌های تمیز کلودفلر (Clean IPs / Domains)</label>
+          <textarea id="cleanIps" placeholder="openai.com&#10;104.16.0.1"></textarea>
+        </div>
+        <div>
+          <label>آی‌پی‌های پروکسی اتصال تی‌سی‌پی (Proxy IPs)</label>
+          <textarea id="proxyIps" placeholder="proxyip.cmliussss.net&#10;1.2.3.4:443"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- نگاشت و جفت‌سازی گره‌ها -->
+    <div class="card">
+      <div class="card-title">
+        <span>جفت‌سازی گره‌ها و دسته‌بندی (Clean IP ➔ Proxy IP)</span>
+        <button class="btn btn-secondary" onclick="autoPairNodes()">جفت‌سازی خودکار همه</button>
+      </div>
+      <div style="display:grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr auto; gap: 8px; align-items: end;">
+        <div>
+          <label>آدرس تمیز</label>
+          <select id="mapCleanIp"></select>
+        </div>
+        <div>
+          <label>آی‌پی پروکسی متناظر</label>
+          <select id="mapProxyIp"></select>
+        </div>
+        <div>
+          <label>نام گره</label>
+          <input type="text" id="mapName" placeholder="نود ۱" style="margin:0;" />
+        </div>
+        <div>
+          <label>دسته‌بندی (گروه)</label>
+          <input type="text" id="mapGroup" placeholder="ایرانسل / همراه اول" style="margin:0;" />
+        </div>
+        <div>
+          <button class="btn" onclick="addNodeMapping()">افزودن</button>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>نام گره</th>
+            <th>دسته‌بندی</th>
+            <th>Clean IP</th>
+            <th>Proxy IP</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody id="mappingTableBody"></tbody>
+      </table>
+    </div>
+
+    <button class="btn btn-save" onclick="saveSettings()">ذخیره تمامی تنظیمات</button>
+    <div id="toast" class="toast"></div>
   </div>
+
   <script>
-    const apiPath = location.pathname.replace(/\/dash$/, '/api/settings');
-    async function loadSettings() {
-      const res = await fetch(apiPath);
-      const data = await res.json();
-      document.getElementById('subPath').value = data.مسیر_اشتراک || '';
-      document.getElementById('fakeWeb').value = data.وب_سایت_استتار || '';
-      document.getElementById('uuid').value = data.شناسه_تایید || '';
-      document.getElementById('proxyIp').value = data.آی_پی_پروکسی || '';
-      document.getElementById('defaultDomain').value = data.مقصد_پیش_فرض || '';
-    }
-    async function saveSettings() {
-      const status = document.getElementById('status');
-      status.innerText = 'در حال ذخیره...';
-      const body = {
-        مسیر_اشتراک: document.getElementById('subPath').value,
-        وب_سایت_استتار: document.getElementById('fakeWeb').value,
-        شناسه_تایید: document.getElementById('uuid').value,
-        آی_پی_پروکسی: document.getElementById('proxyIp').value,
-        مقصد_پیش_فرض: document.getElementById('defaultDomain').value
-      };
-      const res = await fetch(apiPath, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      if (res.ok) {
-        status.style.color = '#4caf50';
-        status.innerText = 'تنظیمات با موفقیت ذخیره شد!';
-      } else {
-        status.style.color = '#f44336';
-        status.innerText = 'خطا در ذخیره تنظیمات.';
+    const apiPath = window.location.pathname.replace(/\/dash$/, '/api/settings');
+    let mappedNodes = [];
+
+    async function loadData() {
+      try {
+        const res = await fetch(apiPath);
+        if (res.status === 401) {
+          window.location.href = window.location.pathname.replace(/\/dash$/, '/login');
+          return;
+        }
+        const data = await res.json();
+
+        document.getElementById('subPath').value = data.مسیر_اشتراک || '';
+        document.getElementById('fakeWeb').value = data.وب_سایت_استتار || '';
+        document.getElementById('uuid').value = data.شناسه_تایید || '';
+        document.getElementById('cleanIps').value = (data.آدرس_های_تمیز || []).join('\n');
+        document.getElementById('proxyIps').value = (data.آی_پی_های_پروکسی || []).join('\n');
+        mappedNodes = data.نگاشت_گره_ها || [];
+
+        renderSubLinks(data.لینک_های_اشتراک);
+        updateDropdowns();
+        renderMappingTable();
+      } catch (err) {
+        showToast('خطا در بارگذاری اطلاعات.', 'error');
       }
     }
-    loadSettings();
+
+    function renderSubLinks(links) {
+      if (!links) return;
+      const container = document.getElementById('subLinks');
+      container.innerHTML = `
+        <div class="sub-item">
+          <span><strong>لینک اشتراک وی۲ری (V2Ray):</strong> ${links.وی۲ری}</span>
+          <button class="btn" onclick="copyText('${links.وی۲ری}')">کپی</button>
+        </div>
+        <div class="sub-item">
+          <span><strong>لینک اشتراک کلش (Clash/Mihomo):</strong> ${links.کلش}</span>
+          <button class="btn" onclick="copyText('${links.کلش}')">کپی</button>
+        </div>
+        <div class="sub-item">
+          <span><strong>اشتراک عمومی:</strong> ${links.عمومی}</span>
+          <button class="btn" onclick="copyText('${links.عمومی}')">کپی</button>
+        </div>
+      `;
+    }
+
+    function updateDropdowns() {
+      const cleanList = document.getElementById('cleanIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
+      const proxyList = document.getElementById('proxyIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
+
+      const cleanSel = document.getElementById('mapCleanIp');
+      const proxySel = document.getElementById('mapProxyIp');
+
+      cleanSel.innerHTML = cleanList.map(ip => `<option value="${ip}">${ip}</option>`).join('');
+      proxySel.innerHTML = proxyList.map(ip => `<option value="${ip}">${ip}</option>`).join('');
+    }
+
+    document.getElementById('cleanIps').addEventListener('input', updateDropdowns);
+    document.getElementById('proxyIps').addEventListener('input', updateDropdowns);
+
+    function renderMappingTable() {
+      const tbody = document.getElementById('mappingTableBody');
+      if (mappedNodes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">گره‌ای تنظیم نشده است.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = mappedNodes.map((n, i) => `
+        <tr>
+          <td>${n.name || '---'}</td>
+          <td><span style="background:#0284c726; color:#38bdf8; padding:3px 8px; border-radius:4px;">${n.group || 'عمومی'}</span></td>
+          <td>${n.cleanIp}</td>
+          <td>${n.proxyIp || '---'}</td>
+          <td><button class="btn btn-danger" style="padding:4px 8px;" onclick="deleteNode(${i})">حذف</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function addNodeMapping() {
+      const cleanIp = document.getElementById('mapCleanIp').value;
+      const proxyIp = document.getElementById('mapProxyIp').value;
+      const name = document.getElementById('mapName').value || `نود-${mappedNodes.length + 1}`;
+      const group = document.getElementById('mapGroup').value || 'عمومی';
+
+      if (!cleanIp) return alert('ابتدا آی‌پی تمیز را مشخص کنید.');
+
+      mappedNodes.push({ cleanIp, proxyIp, name, group });
+      document.getElementById('mapName').value = '';
+      renderMappingTable();
+    }
+
+    function autoPairNodes() {
+      const cleanList = document.getElementById('cleanIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
+      const proxyList = document.getElementById('proxyIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
+      if (cleanList.length === 0) return alert('حداقل یک Clean IP وارد کنید.');
+
+      mappedNodes = cleanList.map((cleanIp, i) => ({
+        cleanIp,
+        proxyIp: proxyList[i % proxyList.length] || '',
+        name: `نود-${i + 1}`,
+        group: 'پیش‌فرض'
+      }));
+      renderMappingTable();
+    }
+
+    function deleteNode(i) {
+      mappedNodes.splice(i, 1);
+      renderMappingTable();
+    }
+
+    function genUUID() {
+      document.getElementById('uuid').value = crypto.randomUUID();
+    }
+
+    async function saveSettings() {
+      showToast('در حال ذخیره...', '');
+      const body = {
+        مسیر_اشتراک: document.getElementById('subPath').value.trim(),
+        وب_سایت_استتار: document.getElementById('fakeWeb').value.trim(),
+        شناسه_تایید: document.getElementById('uuid').value.trim(),
+        آدرس_های_تمیز: document.getElementById('cleanIps').value.split('\n').map(s=>s.trim()).filter(Boolean),
+        آی_پی_های_پروکسی: document.getElementById('proxyIps').value.split('\n').map(s=>s.trim()).filter(Boolean),
+        نگاشت_گره_ها: mappedNodes
+      };
+
+      try {
+        const res = await fetch(apiPath, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (res.ok) {
+          showToast('تنظیمات با موفقیت ذخیره شد!', 'success');
+          loadData();
+        } else {
+          showToast('خطا در ذخیره تنظیمات.', 'error');
+        }
+      } catch {
+        showToast('خطا در اتصال به سرور.', 'error');
+      }
+    }
+
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt);
+      showToast('لینک در کلیپ‌بورد کپی شد!', 'success');
+    }
+
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.className = `toast ${type}`;
+      setTimeout(() => { t.innerText = ''; }, 3500);
+    }
+
+    function logout() {
+      document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      localStorage.removeItem("admin_token");
+      window.location.href = window.location.pathname.replace(/\/dash$/, '/login');
+    }
+
+    loadData();
   </script>
 </body>
 </html>

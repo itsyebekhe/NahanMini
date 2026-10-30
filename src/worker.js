@@ -6,6 +6,7 @@ let وب_سایت_استتار;
 let شناسه_تایید;
 let آی_پی_های_پروکسی = ["proxyip.cmliussss.net"];
 let آدرس_های_تمیز = ["openai.com"];
+let نگاشت_گره_ها = [];
 let رمز_عبور_مدیریت = "admin123";
 
 let آدرس_گیت_هاب_داشبورد = "https://raw.githubusercontent.com/itsyebekhe/NahanMini/main/src/dash/index.html";
@@ -45,6 +46,9 @@ export default {
             if (سطر.key === "شناسه_تایید") شناسه_تایید = سطر.value;
             if (سطر.key === "آی_پی_های_پروکسی") آی_پی_های_پروکسی = تفکیک_ارایه(سطر.value);
             if (سطر.key === "آدرس_های_تمیز") آدرس_های_تمیز = تفکیک_ارایه(سطر.value);
+            if (سطر.key === "نگاشت_گره_ها") {
+              try { نگاشت_گره_ها = JSON.parse(سطر.value); } catch {}
+            }
           }
         }
       } catch (خطای_دیتابیس) {
@@ -135,22 +139,23 @@ export default {
     }
 
     if (درخواست_وب_سوکت) {
-      return await ارتقا_به_وب_سوکت();
+      const پروکسی_سفارشی = url.searchParams.get("proxyip");
+      return await ارتقا_به_وب_سوکت(پروکسی_سفارشی);
     }
   },
 };
 
 // معماری اصلی اسکریپت
-async function ارتقا_به_وب_سوکت() {
+async function ارتقا_به_وب_سوکت(پروکسی_سفارشی) {
   const [کلاینت, رابط_وب_سوکت] = Object.values(new WebSocketPair());
   رابط_وب_سوکت.accept();
   رابط_وب_سوکت.binaryType = "arraybuffer";
   رابط_وب_سوکت.send(new Uint8Array([0, 0]));
-  راه‌اندازی_خط_لوله(رابط_وب_سوکت);
+  راه‌اندازی_خط_لوله(رابط_وب_سوکت, پروکسی_سفارشی);
   return new Response(null, { status: 101, webSocket: کلاینت });
 }
 
-async function راه‌اندازی_خط_لوله(رابط_وب_سوکت) {
+async function راه‌اندازی_خط_لوله(رابط_وب_سوکت, پروکسی_سفارشی) {
   let رابط_تی‌سی‌پی;
   let داده_اولیه = true;
   let صف_پردازش = Promise.resolve();
@@ -214,7 +219,7 @@ async function راه‌اندازی_خط_لوله(رابط_وب_سوکت) {
       رابط_تی‌سی‌پی = connect({ hostname: آدرس_مقصد, port: پورت_مقصد });
       await رابط_تی‌سی‌پی.opened;
     } catch {
-      const پروکسی_انتخابی = آی_پی_های_پروکسی[Math.floor(Math.random() * آی_پی_های_پروکسی.length)] || "proxyip.cmliussss.net";
+      const پروکسی_انتخابی = پروکسی_سفارشی || آی_پی_های_پروکسی[Math.floor(Math.random() * آی_پی_های_پروکسی.length)] || "proxyip.cmliussss.net";
       const [آدرس_آی_پی_پروکسی, پورت_آی_پی_پروکسی = پورت_مقصد] = پروکسی_انتخابی.split(":");
       رابط_تی‌سی‌پی = connect({ hostname: آدرس_آی_پی_پروکسی, port: Number(پورت_آی_پی_پروکسی) });
       await رابط_تی‌سی‌پی.opened;
@@ -289,23 +294,46 @@ async function رابط_راهنما() {
   });
 }
 
+function ساخت_لیست_گره_ها(hostName) {
+  if (Array.isArray(نگاشت_گره_ها) && نگاشت_گره_ها.length > 0) {
+    return نگاشت_گره_ها;
+  }
+  const پایه = hostName.endsWith('.pages.dev') ? آدرس_های_تمیز : [hostName, ...آدرس_های_تمیز];
+  return [...new Set(پایه)].map((آدرس, ایندکس) => ({
+    cleanIp: آدرس,
+    proxyIp: آی_پی_های_پروکسی[이ندکس % آی_پی_های_پروکسی.length] || "",
+    group: "پیش‌فرض",
+    name: `نود-${اینْدکس + 1}`,
+  }));
+}
+
 function پیکربندی_وی۲ری(hostName) {
-  const لیست_آدرس_ها = hostName.endsWith('.pages.dev') ? آدرس_های_تمیز : [hostName, ...آدرس_های_تمیز];
-  const پیکربندی_ها = [...new Set(لیست_آدرس_ها)].map((آدرس) => {
-    return `${ویلس}://${شناسه_تایید}@${آدرس}:443?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}#${encodeURIComponent(آدرس)}`;
+  const گره_ها = ساخت_لیست_گره_ها(hostName);
+  const پیکربندی_ها = گره_ها.map((نود) => {
+    const مسیر_پروکسی = نود.proxyIp ? `/${encodeURI(مسیر_اشتراک)}?proxyip=${encodeURIComponent(نود.proxyIp)}` : `/${encodeURI(مسیر_اشتراک)}`;
+    const برچسب = `[${نود.group || "عمومی"}] ${نود.name || نود.cleanIp}`;
+    return `${ویلس}://${شناسه_تایید}@${نود.cleanIp}:443?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=${encodeURIComponent(مسیر_پروکسی)}#${encodeURIComponent(برچسب)}`;
   });
 
   return new Response(پیکربندی_ها.join("\n"));
 }
 
 function پیکربندی_کلش(hostName) {
-  const لیست_آدرس_ها = hostName.endsWith('.pages.dev') ? آدرس_های_تمیز : [hostName, ...آدرس_های_تمیز];
-  const گره_های_منحصر = [...new Set(لیست_آدرس_ها)];
+  const گره_ها = ساخت_لیست_گره_ها(hostName);
+  const دسته_بندی_ها = {};
 
-  const بخش_پروکسی_ها = گره_های_منحصر.map((آدرس) => `
-- name: ${آدرس}
+  const بخش_پروکسی_ها = گره_ها.map((نود) => {
+    const گروه = نود.group || "عمومی";
+    const نام_نود = `[${گروه}] ${نود.name || نود.cleanIp}`;
+    if (!دسته_بندی_ها[گروه]) دسته_بندی_ها[گروه] = [];
+    دسته_بندی_ها[گروه].push(نام_نود);
+
+    const مسیر_پروکسی = نود.proxyIp ? `/${encodeURI(مسیر_اشتراک)}?proxyip=${encodeURIComponent(نود.proxyIp)}` : `/${encodeURI(مسیر_اشتراک)}`;
+
+    return `
+- name: "${نام_نود}"
   type: ${ویلس}
-  server: ${آدرس}
+  server: ${نود.cleanIp}
   port: 443
   uuid: ${شناسه_تایید}
   udp: true
@@ -313,26 +341,35 @@ function پیکربندی_کلش(hostName) {
   sni: ${hostName}
   network: ws
   ws-opts:
+    path: "${مسیر_پروکسی}"
     headers:
       Host: ${hostName}
-      User-Agent: Chrome`).join("\n");
+      User-Agent: Chrome`;
+  }).join("\n");
 
-  const پروکسی_های_انتخابی = گره_های_منحصر.map((آدرس) => `    - ${آدرس}`).join("\n");
+  const تمام_گره_ها = گره_ها.map(ن => `    - "[${ن.group || "عمومی"}] ${ن.name || ن.cleanIp}"`).join("\n");
+
+  const گروه_های_فرعی = Object.keys(دسته_بندی_ها).map(گروه => `
+- name: "دسته: ${گروه}"
+  type: select
+  proxies:
+${دسته_بندی_ها[گروه].map(n => `    - "${n}"`).join("\n")}`).join("\n");
 
   const محتوای_پیکربندی = `
 proxies:
 ${بخش_پروکسی_ها}
 
 proxy-groups:
-- name: لیست پروکسی‌ها
+- name: "انتخاب نود"
   type: select
   proxies:
-${پروکسی_های_انتخابی}
+${تمام_گره_ها}
+${گروه_های_فرعی}
 
 rules:
   - GEOSITE,cn,DIRECT
   - GEOIP,CN,DIRECT,no-resolve
-  - MATCH,لیست پروکسی‌ها
+  - MATCH,"انتخاب نود"
 `;
 
   return new Response(محتوای_پیکربندی);
@@ -386,6 +423,9 @@ async function بارگذاری_داشبورد() {
 }
 
 async function مدیریت_تنظیمات(درخواست, env) {
+  const host = درخواست.headers.get("Host");
+  const آدرس_پایه = `https://${host}/${encodeURI(مسیر_اشتراک)}`;
+
   if (درخواست.method === "GET") {
     const داده = {
       مسیر_اشتراک,
@@ -393,6 +433,13 @@ async function مدیریت_تنظیمات(درخواست, env) {
       شناسه_تایید,
       آی_پی_های_پروکسی,
       آدرس_های_تمیز,
+      نگاشت_گره_ها,
+      لینک_های_اشتراک: {
+        وی۲ری: `${آدرس_پایه}/${وی۲ری}`,
+        کلش: `${آدرس_پایه}/${کلش}`,
+        عمومی: آدرس_پایه,
+        اطلاعات: `${آدرس_پایه}/info`,
+      },
     };
     return new Response(JSON.stringify(داده), {
       headers: { "Content-Type": "application/json;charset=utf-8" },
@@ -408,6 +455,7 @@ async function مدیریت_تنظیمات(درخواست, env) {
       if (ورودی.شناسه_تایید) شناسه_تایید = ورودی.شناسه_تایید;
       if (ورودی.آی_پی_های_پروکسی) آی_پی_های_پروکسی = تفکیک_ارایه(ورودی.آی_پی_های_پروکسی);
       if (ورودی.آدرس_های_تمیز) آدرس_های_تمیز = تفکیک_ارایه(ورودی.آدرس_های_تمیز);
+      if (Array.isArray(ورودی.نگاشت_گره_ها)) نگاشت_گره_ها = ورودی.نگاشت_گره_ها;
 
       if (env.DB) {
         await env.DB.batch([
@@ -416,6 +464,7 @@ async function مدیریت_تنظیمات(درخواست, env) {
           env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("شناسه_تایید", شناسه_تایید),
           env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("آی_پی_های_پروکسی", آی_پی_های_پروکسی.join("\n")),
           env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("آدرس_های_تمیز", آدرس_های_تمیز.join("\n")),
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("نگاشت_گره_ها", JSON.stringify(نگاشت_گره_ها)),
         ]);
       }
 
