@@ -7,6 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
   <style>
     :root {
       --primary: #FDC800;
@@ -15,10 +19,23 @@
       --warning: #D97706;
       --danger: #DC2626;
       --surface: #FBFBF9;
+      --card-bg: #FFFFFF;
       --text: #1C293C;
+      --text-muted: #64748B;
       --border: #1C293C;
+      --input-bg: #FFFFFF;
+      --dot-color: #1C293C;
       --radius-sm: 4px;
       --radius-md: 8px;
+    }
+    [data-theme="dark"] {
+      --surface: #0E1015;
+      --card-bg: #181B22;
+      --text: #FBFBF9;
+      --text-muted: #94A3B8;
+      --border: #000000;
+      --input-bg: #111319;
+      --dot-color: #2D313E;
     }
     * {
       box-sizing: border-box;
@@ -29,7 +46,7 @@
     }
     body {
       background-color: var(--surface);
-      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
       background-size: 24px 24px;
       padding: 32px 16px;
       line-height: 1.5;
@@ -51,13 +68,20 @@
       font-weight: 900;
       letter-spacing: -0.03em;
     }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
     .card {
-      background: #FFFFFF;
+      background: var(--card-bg);
       border: 3px solid var(--border);
       border-radius: var(--radius-md);
       box-shadow: 6px 6px 0px var(--border);
       padding: 24px;
       margin-bottom: 24px;
+    }
+    [data-theme="dark"] .card {
+      outline: 1px solid #2B3040;
     }
     .card-header {
       display: flex;
@@ -79,6 +103,7 @@
       font-weight: 700;
       text-transform: uppercase;
       background: var(--primary);
+      color: #1C293C;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 3px 8px;
@@ -109,12 +134,15 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.875rem;
       padding: 10px 12px;
-      background: #FFFFFF;
+      background: var(--input-bg);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       box-shadow: 3px 3px 0px var(--border);
       outline: none;
       margin-bottom: 16px;
+    }
+    [data-theme="dark"] input, [data-theme="dark"] textarea, [data-theme="dark"] select {
+      outline: 1px solid #2B3040;
     }
     textarea {
       height: 110px;
@@ -139,6 +167,7 @@
       box-shadow: 3px 3px 0px var(--border);
       cursor: pointer;
       background: var(--primary);
+      color: #1C293C;
       transition: all 0.1s ease;
     }
     .btn:hover {
@@ -150,8 +179,11 @@
       box-shadow: 1px 1px 0px var(--border);
     }
     .btn-secondary {
-      background: #FFFFFF;
+      background: var(--card-bg);
       color: var(--text);
+    }
+    [data-theme="dark"] .btn-secondary {
+      outline: 1px solid #2B3040;
     }
     .btn-danger {
       background: var(--danger);
@@ -169,6 +201,9 @@
       margin-bottom: 12px;
       gap: 12px;
     }
+    [data-theme="dark"] .sub-item {
+      outline: 1px solid #2B3040;
+    }
     .sub-item span {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.8125rem;
@@ -183,6 +218,9 @@
       border-radius: var(--radius-sm);
       overflow: hidden;
       box-shadow: 3px 3px 0px var(--border);
+    }
+    [data-theme="dark"] table {
+      outline: 1px solid #2B3040;
     }
     th, td {
       padding: 12px;
@@ -205,6 +243,7 @@
       padding: 16px;
       font-size: 1.125rem;
       background: var(--primary);
+      color: #1C293C;
       margin-top: 16px;
       box-shadow: 5px 5px 0px var(--border);
     }
@@ -222,13 +261,13 @@
     }
     .toast.success {
       display: block;
-      background: #DCFCE7;
-      color: var(--success);
+      background: #14532D;
+      color: #BBF7D0;
     }
     .toast.error {
       display: block;
-      background: #FEE2E2;
-      color: var(--danger);
+      background: #7F1D1D;
+      color: #FECACA;
     }
   </style>
 </head>
@@ -239,7 +278,10 @@
         <span class="badge">CONTROLLER</span>
         <h1>پنل مدیریت سرور</h1>
       </div>
-      <button class="btn btn-secondary" onclick="logout()">خروج از حساب ✕</button>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="toggleTheme()" id="themeBtn">🌙 تم</button>
+        <button class="btn btn-secondary" onclick="logout()">خروج ✕</button>
+      </div>
     </div>
 
     <!-- لینک‌های اشتراک -->
@@ -492,6 +534,20 @@
       t.className = `toast ${type}`;
       t.style.display = 'block';
       setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+
+    function updateThemeBtn() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('themeBtn').textContent = isDark ? '☀️ روشن' : '🌙 تاریک';
+    }
+    updateThemeBtn();
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const target = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', target);
+      localStorage.setItem('theme', target);
+      updateThemeBtn();
     }
 
     function logout() {

@@ -7,6 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    // تنظیم تم قبل از رندر صفحه جهت جلوگیری از پرش رنگ
+    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
   <style>
     :root {
       --primary: #FDC800;
@@ -15,10 +20,23 @@
       --warning: #D97706;
       --danger: #DC2626;
       --surface: #FBFBF9;
+      --card-bg: #FFFFFF;
       --text: #1C293C;
+      --text-muted: #64748B;
       --border: #1C293C;
+      --input-bg: #FFFFFF;
+      --dot-color: #1C293C;
       --radius-sm: 4px;
       --radius-md: 8px;
+    }
+    [data-theme="dark"] {
+      --surface: #0E1015;
+      --card-bg: #181B22;
+      --text: #FBFBF9;
+      --text-muted: #94A3B8;
+      --border: #000000;
+      --input-bg: #111319;
+      --dot-color: #2D313E;
     }
     * {
       box-sizing: border-box;
@@ -29,22 +47,40 @@
     }
     body {
       background-color: var(--surface);
-      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
       background-size: 24px 24px;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 16px;
+      position: relative;
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 3px 3px 0px var(--border);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
     }
     .card {
-      background: #FFFFFF;
+      background: var(--card-bg);
       border: 3px solid var(--border);
       border-radius: var(--radius-md);
       box-shadow: 6px 6px 0px var(--border);
       width: 100%;
       max-width: 420px;
       padding: 32px 24px;
+    }
+    [data-theme="dark"] .card {
+      outline: 1px solid #2B3040;
     }
     .badge {
       display: inline-block;
@@ -53,6 +89,7 @@
       font-weight: 700;
       text-transform: uppercase;
       background: var(--primary);
+      color: #1C293C;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 4px 10px;
@@ -69,7 +106,7 @@
     p {
       font-size: 0.9375rem;
       margin-bottom: 24px;
-      color: #475569;
+      color: var(--text-muted);
     }
     label {
       display: block;
@@ -84,12 +121,14 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.9375rem;
       padding: 12px 14px;
-      background: #FFFFFF;
+      background: var(--input-bg);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       box-shadow: 3px 3px 0px var(--border);
       outline: none;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    [data-theme="dark"] input[type="password"] {
+      outline: 1px solid #2B3040;
     }
     input[type="password"]:focus {
       box-shadow: 4px 4px 0px var(--secondary);
@@ -104,6 +143,7 @@
       text-transform: uppercase;
       letter-spacing: 0.02em;
       background: var(--primary);
+      color: #1C293C;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       box-shadow: 4px 4px 0px var(--border);
@@ -119,7 +159,7 @@
       box-shadow: 2px 2px 0px var(--border);
     }
     .btn:disabled {
-      background: #E2E8F0;
+      background: #64748B;
       cursor: not-allowed;
       transform: none;
       box-shadow: 2px 2px 0px var(--border);
@@ -138,17 +178,21 @@
     }
     .toast.error {
       display: block;
-      background: #FEE2E2;
-      color: var(--danger);
+      background: #7F1D1D;
+      color: #FECACA;
+      border-color: var(--border);
     }
     .toast.success {
       display: block;
-      background: #DCFCE7;
-      color: var(--success);
+      background: #14532D;
+      color: #BBF7D0;
+      border-color: var(--border);
     }
   </style>
 </head>
 <body>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 حالت تاریک</button>
+
   <div class="card">
     <div class="badge">SECURE GATEWAY</div>
     <h1>ورود مدیر</h1>
@@ -167,6 +211,21 @@
     const passwordInput = document.getElementById("password");
     const submitBtn = document.getElementById("submitBtn");
     const toast = document.getElementById("toast");
+    const themeBtn = document.getElementById("themeBtn");
+
+    function updateThemeBtn() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      themeBtn.textContent = isDark ? '☀️ حالت روشن' : '🌙 حالت تاریک';
+    }
+    updateThemeBtn();
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const target = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', target);
+      localStorage.setItem('theme', target);
+      updateThemeBtn();
+    }
 
     const apiLoginUrl = window.location.pathname.replace(/\/login$/, '/api/login');
     const dashUrl = window.location.pathname.replace(/\/login$/, '/dash');
