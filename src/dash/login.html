@@ -3,100 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ورود به مدیریت</title>
+  <title>ورود به پنل | Neobrutalism</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #FDC800;
+      --secondary: #432DD7;
+      --success: #16A34A;
+      --warning: #D97706;
+      --danger: #DC2626;
+      --surface: #FBFBF9;
+      --text: #1C293C;
+      --border: #1C293C;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+    }
     * {
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
-    }
-    body {
       margin: 0;
       padding: 0;
-      background: #0f172a;
-      color: #f8fafc;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+    body {
+      background-color: var(--surface);
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 24px 24px;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 16px;
     }
-    .login-card {
-      background: #1e293b;
-      padding: 35px 30px;
-      border-radius: 14px;
+    .card {
+      background: #FFFFFF;
+      border: 3px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 6px 6px 0px var(--border);
       width: 100%;
-      max-width: 400px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-      border: 1px solid #334155;
+      max-width: 420px;
+      padding: 32px 24px;
     }
-    h2 {
-      margin-top: 0;
-      margin-bottom: 25px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: 600;
+    .badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: var(--primary);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      box-shadow: 2px 2px 0px var(--border);
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.1875rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
+    }
+    p {
+      font-size: 0.9375rem;
+      margin-bottom: 24px;
+      color: #475569;
     }
     label {
       display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-transform: uppercase;
       margin-bottom: 8px;
-      font-size: 14px;
-      color: #94a3b8;
     }
     input[type="password"] {
       width: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9375rem;
       padding: 12px 14px;
-      border-radius: 8px;
-      border: 1px solid #475569;
-      background: #0f172a;
-      color: #fff;
-      font-size: 15px;
+      background: #FFFFFF;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 3px 3px 0px var(--border);
       outline: none;
-      transition: border-color 0.2s;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
     input[type="password"]:focus {
-      border-color: #38bdf8;
+      box-shadow: 4px 4px 0px var(--secondary);
+      border-color: var(--secondary);
     }
-    button {
+    .btn {
       width: 100%;
-      padding: 12px;
-      margin-top: 22px;
-      background: #0284c7;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 500;
+      margin-top: 24px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      background: var(--primary);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 4px 4px 0px var(--border);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.1s ease;
     }
-    button:hover {
-      background: #0369a1;
+    .btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 6px 6px 0px var(--border);
     }
-    button:disabled {
-      background: #475569;
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px var(--border);
+    }
+    .btn:disabled {
+      background: #E2E8F0;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: 2px 2px 0px var(--border);
     }
-    .message {
-      margin-top: 15px;
-      font-size: 14px;
+    .toast {
+      margin-top: 16px;
+      padding: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: none;
       text-align: center;
-      min-height: 20px;
+      box-shadow: 2px 2px 0px var(--border);
     }
-    .message.error {
-      color: #f87171;
+    .toast.error {
+      display: block;
+      background: #FEE2E2;
+      color: var(--danger);
     }
-    .message.success {
-      color: #4ade80;
+    .toast.success {
+      display: block;
+      background: #DCFCE7;
+      color: var(--success);
     }
   </style>
 </head>
 <body>
-  <div class="login-card">
-    <h2>ورود به پنل مدیریت</h2>
+  <div class="card">
+    <div class="badge">SECURE GATEWAY</div>
+    <h1>ورود مدیر</h1>
+    <p>برای پیکربندی پروکسی و اشتراک‌ها، رمز عبور را وارد کنید.</p>
+
     <form id="loginForm">
-      <label for="password">رمز عبور مدیریت:</label>
-      <input type="password" id="password" required autocomplete="current-password" autofocus />
-      <button type="submit" id="submitBtn">ورود</button>
-      <div id="msg" class="message"></div>
+      <label for="password">رمز عبور سیستم:</label>
+      <input type="password" id="password" required autofocus autocomplete="current-password" />
+      <button type="submit" id="submitBtn" class="btn">احراز هویت و ورود ➔</button>
+      <div id="toast" class="toast"></div>
     </form>
   </div>
 
@@ -104,17 +166,17 @@
     const form = document.getElementById("loginForm");
     const passwordInput = document.getElementById("password");
     const submitBtn = document.getElementById("submitBtn");
-    const msg = document.getElementById("msg");
+    const toast = document.getElementById("toast");
 
-    // مسیرهای خودکار بر اساس مسیر فراخوانی شده
     const apiLoginUrl = window.location.pathname.replace(/\/login$/, '/api/login');
     const dashUrl = window.location.pathname.replace(/\/login$/, '/dash');
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      msg.className = "message";
-      msg.textContent = "در حال اعتبارسنجی...";
+      toast.className = "toast";
+      toast.style.display = "none";
       submitBtn.disabled = true;
+      submitBtn.textContent = "در حال بررسی...";
 
       try {
         const res = await fetch(apiLoginUrl, {
@@ -126,23 +188,25 @@
         const data = await res.json();
 
         if (res.ok && data.موفقیت) {
-          msg.className = "message success";
-          msg.textContent = "ورود موفقیت‌آمیز بود. در حال انتقال...";
+          toast.className = "toast success";
+          toast.textContent = "✓ ورود موفق! در حال انتقال...";
           if (data.توکن) {
             localStorage.setItem("admin_token", data.توکن);
           }
           setTimeout(() => {
             window.location.href = dashUrl;
-          }, 800);
+          }, 600);
         } else {
-          msg.className = "message error";
-          msg.textContent = data.پیام || "رمز عبور نادرست است.";
+          toast.className = "toast error";
+          toast.textContent = "✕ " + (data.پیام || "رمز عبور نادرست است.");
           submitBtn.disabled = false;
+          submitBtn.textContent = "احراز هویت و ورود ➔";
         }
       } catch (err) {
-        msg.className = "message error";
-        msg.textContent = "خطا در اتصال به سرور.";
+        toast.className = "toast error";
+        toast.textContent = "✕ خطا در اتصال به سرور.";
         submitBtn.disabled = false;
+        submitBtn.textContent = "احراز هویت و ورود ➔";
       }
     });
   </script>

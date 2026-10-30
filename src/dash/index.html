@@ -3,125 +3,321 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>داشبورد مدیریت پیشرفته پروکسی</title>
+  <title>داشبورد مدیریت پروکسی | Neobrutalism</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --primary: #0284c7;
-      --primary-hover: #0369a1;
-      --danger: #ef4444;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --input-bg: #0f172a;
+      --primary: #FDC800;
+      --secondary: #432DD7;
+      --success: #16A34A;
+      --warning: #D97706;
+      --danger: #DC2626;
+      --surface: #FBFBF9;
+      --text: #1C293C;
+      --border: #1C293C;
+      --radius-sm: 4px;
+      --radius-md: 8px;
     }
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", sans-serif; }
-    body { margin: 0; padding: 25px 15px; background: var(--bg); color: var(--text); }
-    .container { max-width: 1000px; margin: 0 auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    h1 { margin: 0; font-size: 24px; font-weight: 700; }
-    .btn-logout { background: #334155; color: var(--text); padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
-    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 22px; margin-bottom: 22px; }
-    .card-title { margin-top: 0; margin-bottom: 15px; font-size: 18px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+    body {
+      background-color: var(--surface);
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 24px 24px;
+      padding: 32px 16px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--border);
+    }
+    .header h1 {
+      font-size: 2.1875rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 3px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 6px 6px 0px var(--border);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px dashed var(--border);
+      padding-bottom: 12px;
+    }
+    .card-title {
+      font-size: 1.3125rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: var(--primary);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 3px 8px;
+      box-shadow: 2px 2px 0px var(--border);
+    }
+    .badge-secondary {
+      background: var(--secondary);
+      color: #FFFFFF;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media(max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
     input, textarea, select {
-      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);
-      background: var(--input-bg); color: #fff; font-size: 14px; outline: none; margin-bottom: 12px;
+      width: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      padding: 10px 12px;
+      background: #FFFFFF;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 3px 3px 0px var(--border);
+      outline: none;
+      margin-bottom: 16px;
     }
-    textarea { height: 100px; resize: vertical; line-height: 1.5; }
-    .sub-item { display: flex; align-items: center; justify-content: space-between; background: var(--input-bg); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-border); margin-bottom: 10px; }
-    .sub-item span { font-size: 14px; word-break: break-all; }
-    .btn { padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; background: var(--primary); color: #fff; transition: 0.2s; }
-    .btn:hover { background: var(--primary-hover); }
-    .btn-danger { background: var(--danger); }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-secondary { background: #475569; }
-    .btn-secondary:hover { background: #64748b; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-    th, td { padding: 10px; text-align: right; border-bottom: 1px solid var(--card-border); }
-    th { color: var(--text-muted); font-weight: 500; }
-    .btn-save { width: 100%; padding: 14px; font-size: 16px; font-weight: 600; margin-top: 10px; }
-    .toast { text-align: center; margin-top: 15px; font-size: 15px; min-height: 22px; }
-    .toast.success { color: #4ade80; }
-    .toast.error { color: #f87171; }
+    textarea {
+      height: 110px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--secondary);
+      box-shadow: 4px 4px 0px var(--secondary);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      font-size: 0.875rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 3px 3px 0px var(--border);
+      cursor: pointer;
+      background: var(--primary);
+      transition: all 0.1s ease;
+    }
+    .btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0px var(--border);
+    }
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px var(--border);
+    }
+    .btn-secondary {
+      background: #FFFFFF;
+      color: var(--text);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #FFFFFF;
+    }
+    .sub-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 3px 3px 0px var(--border);
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .sub-item span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      word-break: break-all;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: 3px 3px 0px var(--border);
+    }
+    th, td {
+      padding: 12px;
+      text-align: right;
+      border-bottom: 2px solid var(--border);
+      font-size: 0.875rem;
+    }
+    th {
+      background: var(--surface);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .btn-save {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.125rem;
+      background: var(--primary);
+      margin-top: 16px;
+      box-shadow: 5px 5px 0px var(--border);
+    }
+    .toast {
+      margin-top: 16px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      font-weight: 700;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      display: none;
+      box-shadow: 3px 3px 0px var(--border);
+    }
+    .toast.success {
+      display: block;
+      background: #DCFCE7;
+      color: var(--success);
+    }
+    .toast.error {
+      display: block;
+      background: #FEE2E2;
+      color: var(--danger);
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>داشبورد مدیریت پیشرفته</h1>
-      <button class="btn-logout" onclick="logout()">خروج</button>
+      <div>
+        <span class="badge">CONTROLLER</span>
+        <h1>پنل مدیریت سرور</h1>
+      </div>
+      <button class="btn btn-secondary" onclick="logout()">خروج از حساب ✕</button>
     </div>
 
     <!-- لینک‌های اشتراک -->
     <div class="card">
-      <div class="card-title">لینک‌های اتصال و اشتراک کاربران</div>
+      <div class="card-header">
+        <span class="card-title">لینک‌های اتصال کاربران</span>
+        <span class="badge badge-secondary">SUBSCRIPTIONS</span>
+      </div>
       <div id="subLinks">در حال بارگذاری لینک‌ها...</div>
     </div>
 
-    <!-- تنظیمات اصلی -->
+    <!-- پیکربندی هسته -->
     <div class="card">
-      <div class="card-title">تنظیمات اصلی سرور</div>
+      <div class="card-header">
+        <span class="card-title">تنظیمات هسته</span>
+        <span class="badge">CORE CONFIG</span>
+      </div>
       <div class="grid-2">
         <div>
-          <label>مسیر اشتراک (Sub Path)</label>
+          <label>مسیر اشتراک (SUB PATH)</label>
           <input type="text" id="subPath" />
         </div>
         <div>
           <label>شناسه تایید (UUID)</label>
           <div style="display:flex; gap:8px;">
             <input type="text" id="uuid" />
-            <button class="btn btn-secondary" style="height:42px;" onclick="genUUID()">تولید</button>
+            <button class="btn btn-secondary" style="height:42px; padding:0 12px;" onclick="genUUID()">تولید</button>
           </div>
         </div>
       </div>
-      <label>وب‌سایت استتار (Fake Web)</label>
+      <label>وب‌سایت استتار (FAKE WEB URL)</label>
       <input type="text" id="fakeWeb" placeholder="https://example.com" />
     </div>
 
-    <!-- مدیریت آی‌پی‌های تمیز و پروکسی -->
+    <!-- آی‌پی‌های چندگانه -->
     <div class="card">
-      <div class="card-title">مدیریت آی‌پی‌های چندگانه (هر آی‌پی در یک سطر)</div>
+      <div class="card-header">
+        <span class="card-title">مخزن آی‌پی‌های تمیز و پروکسی</span>
+        <span class="badge">IP POOLS</span>
+      </div>
       <div class="grid-2">
         <div>
-          <label>آدرس‌های تمیز کلودفلر (Clean IPs / Domains)</label>
+          <label>آدرس‌های تمیز کلودفلر (CLEAN IPS - سطر به سطر)</label>
           <textarea id="cleanIps" placeholder="openai.com&#10;104.16.0.1"></textarea>
         </div>
         <div>
-          <label>آی‌پی‌های پروکسی اتصال تی‌سی‌پی (Proxy IPs)</label>
+          <label>آی‌پی‌های پروکسی اتصال تی‌سی‌پی (PROXY IPS - سطر به سطر)</label>
           <textarea id="proxyIps" placeholder="proxyip.cmliussss.net&#10;1.2.3.4:443"></textarea>
         </div>
       </div>
     </div>
 
-    <!-- نگاشت و جفت‌سازی گره‌ها -->
+    <!-- نگاشت و دسته‌بندی نودها -->
     <div class="card">
-      <div class="card-title">
-        <span>جفت‌سازی گره‌ها و دسته‌بندی (Clean IP ➔ Proxy IP)</span>
-        <button class="btn btn-secondary" onclick="autoPairNodes()">جفت‌سازی خودکار همه</button>
+      <div class="card-header">
+        <span class="card-title">جفت‌سازی و گروه‌بندی نودها</span>
+        <button class="btn btn-secondary" onclick="autoPairNodes()">⚡ جفت‌سازی خودکار</button>
       </div>
+
       <div style="display:grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr auto; gap: 8px; align-items: end;">
         <div>
-          <label>آدرس تمیز</label>
-          <select id="mapCleanIp"></select>
+          <label>Clean IP</label>
+          <select id="mapCleanIp" style="margin:0;"></select>
         </div>
         <div>
-          <label>آی‌پی پروکسی متناظر</label>
-          <select id="mapProxyIp"></select>
+          <label>Proxy IP</label>
+          <select id="mapProxyIp" style="margin:0;"></select>
         </div>
         <div>
           <label>نام گره</label>
           <input type="text" id="mapName" placeholder="نود ۱" style="margin:0;" />
         </div>
         <div>
-          <label>دسته‌بندی (گروه)</label>
-          <input type="text" id="mapGroup" placeholder="ایرانسل / همراه اول" style="margin:0;" />
+          <label>گروه</label>
+          <input type="text" id="mapGroup" placeholder="ایرانسل" style="margin:0;" />
         </div>
         <div>
-          <button class="btn" onclick="addNodeMapping()">افزودن</button>
+          <button class="btn" onclick="addNodeMapping()">+ افزودن</button>
         </div>
       </div>
 
@@ -129,7 +325,7 @@
         <thead>
           <tr>
             <th>نام گره</th>
-            <th>دسته‌بندی</th>
+            <th>گروه / اپراتور</th>
             <th>Clean IP</th>
             <th>Proxy IP</th>
             <th>عملیات</th>
@@ -139,7 +335,7 @@
       </table>
     </div>
 
-    <button class="btn btn-save" onclick="saveSettings()">ذخیره تمامی تنظیمات</button>
+    <button class="btn btn-save" onclick="saveSettings()">ذخیره تمامی تغییرات 💾</button>
     <div id="toast" class="toast"></div>
   </div>
 
@@ -176,16 +372,16 @@
       const container = document.getElementById('subLinks');
       container.innerHTML = `
         <div class="sub-item">
-          <span><strong>لینک اشتراک وی۲ری (V2Ray):</strong> ${links.وی۲ری}</span>
-          <button class="btn" onclick="copyText('${links.وی۲ری}')">کپی</button>
+          <span><strong>V2RAY:</strong> ${links.وی۲ری}</span>
+          <button class="btn btn-secondary" onclick="copyText('${links.وی۲ری}')">کپی</button>
         </div>
         <div class="sub-item">
-          <span><strong>لینک اشتراک کلش (Clash/Mihomo):</strong> ${links.کلش}</span>
-          <button class="btn" onclick="copyText('${links.کلش}')">کپی</button>
+          <span><strong>CLASH:</strong> ${links.کلش}</span>
+          <button class="btn btn-secondary" onclick="copyText('${links.کلش}')">کپی</button>
         </div>
         <div class="sub-item">
-          <span><strong>اشتراک عمومی:</strong> ${links.عمومی}</span>
-          <button class="btn" onclick="copyText('${links.عمومی}')">کپی</button>
+          <span><strong>UNIVERSAL:</strong> ${links.عمومی}</span>
+          <button class="btn btn-secondary" onclick="copyText('${links.عمومی}')">کپی</button>
         </div>
       `;
     }
@@ -207,16 +403,16 @@
     function renderMappingTable() {
       const tbody = document.getElementById('mappingTableBody');
       if (mappedNodes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">گره‌ای تنظیم نشده است.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; font-family:'JetBrains Mono';">هیچ گره‌ای تنظیم نشده است.</td></tr>`;
         return;
       }
       tbody.innerHTML = mappedNodes.map((n, i) => `
         <tr>
-          <td>${n.name || '---'}</td>
-          <td><span style="background:#0284c726; color:#38bdf8; padding:3px 8px; border-radius:4px;">${n.group || 'عمومی'}</span></td>
-          <td>${n.cleanIp}</td>
-          <td>${n.proxyIp || '---'}</td>
-          <td><button class="btn btn-danger" style="padding:4px 8px;" onclick="deleteNode(${i})">حذف</button></td>
+          <td><strong>${n.name || '---'}</strong></td>
+          <td><span class="badge">${n.group || 'عمومی'}</span></td>
+          <td><code style="font-family:'JetBrains Mono';">${n.cleanIp}</code></td>
+          <td><code style="font-family:'JetBrains Mono';">${n.proxyIp || '---'}</code></td>
+          <td><button class="btn btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteNode(${i})">حذف</button></td>
         </tr>
       `).join('');
     }
@@ -227,7 +423,7 @@
       const name = document.getElementById('mapName').value || `نود-${mappedNodes.length + 1}`;
       const group = document.getElementById('mapGroup').value || 'عمومی';
 
-      if (!cleanIp) return alert('ابتدا آی‌پی تمیز را مشخص کنید.');
+      if (!cleanIp) return alert('آدرس تمیز نمی‌تواند خالی باشد.');
 
       mappedNodes.push({ cleanIp, proxyIp, name, group });
       document.getElementById('mapName').value = '';
@@ -237,7 +433,7 @@
     function autoPairNodes() {
       const cleanList = document.getElementById('cleanIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
       const proxyList = document.getElementById('proxyIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
-      if (cleanList.length === 0) return alert('حداقل یک Clean IP وارد کنید.');
+      if (cleanList.length === 0) return alert('حداقل یک Clean IP مشخص کنید.');
 
       mappedNodes = cleanList.map((cleanIp, i) => ({
         cleanIp,
@@ -258,7 +454,7 @@
     }
 
     async function saveSettings() {
-      showToast('در حال ذخیره...', '');
+      showToast('در حال ذخیره تنظیمات...', '');
       const body = {
         مسیر_اشتراک: document.getElementById('subPath').value.trim(),
         وب_سایت_استتار: document.getElementById('fakeWeb').value.trim(),
@@ -275,26 +471,27 @@
           body: JSON.stringify(body)
         });
         if (res.ok) {
-          showToast('تنظیمات با موفقیت ذخیره شد!', 'success');
+          showToast('✓ تنظیمات با موفقیت در دیتابیس D1 ذخیره شد!', 'success');
           loadData();
         } else {
-          showToast('خطا در ذخیره تنظیمات.', 'error');
+          showToast('✕ خطا در ذخیره تنظیمات.', 'error');
         }
       } catch {
-        showToast('خطا در اتصال به سرور.', 'error');
+        showToast('✕ خطا در اتصال به سرور.', 'error');
       }
     }
 
     function copyText(txt) {
       navigator.clipboard.writeText(txt);
-      showToast('لینک در کلیپ‌بورد کپی شد!', 'success');
+      showToast('✓ لینک اشتراک با موفقیت کپی شد!', 'success');
     }
 
     function showToast(msg, type) {
       const t = document.getElementById('toast');
       t.innerText = msg;
       t.className = `toast ${type}`;
-      setTimeout(() => { t.innerText = ''; }, 3500);
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 4000);
     }
 
     function logout() {
