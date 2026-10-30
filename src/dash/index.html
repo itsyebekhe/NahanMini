@@ -603,6 +603,14 @@
         }
         const data = await res.json();
 
+        // نمایش هشدار رمز عبور پیش‌فرض
+        const alertEl = document.getElementById('defaultPassAlert');
+        if (data.رمز_پیش_فرض) {
+          alertEl.style.display = 'block';
+        } else {
+          alertEl.style.display = 'none';
+        }
+
         document.getElementById('subPath').value = data.مسیر_اشتراک || '';
         document.getElementById('fakeWeb').value = data.وب_سایت_استتار || '';
         document.getElementById('uuid').value = data.شناسه_تایید || '';
@@ -616,6 +624,14 @@
       } catch (err) {
         showToast('خطا در دریافت اطلاعات سرور.', 'error');
       }
+    }
+
+    function goToSecurityTab() {
+      const securityTabBtn = document.querySelectorAll('.dock-item')[4];
+      switchTab('tab-security', securityTabBtn);
+      setTimeout(() => {
+        document.getElementById('newPassword').focus();
+      }, 150);
     }
 
     function renderSubLinks(links) {
