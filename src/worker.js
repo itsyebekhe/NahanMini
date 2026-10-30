@@ -4,10 +4,14 @@ import { connect } from "cloudflare:sockets";
 let مسیر_اشتراک = "مسیر-اشتراک";
 let وب_سایت_استتار;
 let شناسه_تایید;
-let آی‌پی_پروکسی = "proxyip.cmliussss.net";
-let مقصد_پیش_فرض = "openai.com";
-let آدرس_گیت_هاب_داشبورد = "https://raw.githubusercontent.com/username/repository/main/src/dash/index.html";
-let آدرس_سی_دی_ان_داشبورد = "https://cdn.jsdelivr.net/gh/username/repository@main/src/dash/index.html";
+let آی_پی_های_پروکسی = ["proxyip.cmliussss.net"];
+let آدرس_های_تمیز = ["openai.com"];
+let رمز_عبور_مدیریت = "admin123";
+
+let آدرس_گیت_هاب_داشبورد = "https://raw.githubusercontent.com/itsyebekhe/NahanMini/main/src/dash/index.html";
+let آدرس_سی_دی_ان_داشبورد = "https://cdn.jsdelivr.net/gh/itsyebekhe/NahanMini@main/src/dash/index.html";
+let آدرس_گیت_هاب_ورود = "https://raw.githubusercontent.com/itsyebekhe/NahanMini/main/src/dash/login.html";
+let آدرس_سی_دی_ان_ورود = "https://cdn.jsdelivr.net/gh/itsyebekhe/NahanMini@main/src/dash/login.html";
 
 // تفکیک کلمات کلیدی (جهت جلوگیری از شناسایی)
 const تفکیک_وی۲ری = ["v2", "ray"];
@@ -24,23 +28,29 @@ const فرمت_کلید = Array.from({ length: 256 }, (_, i) => (i + 256).toStri
 // ورودی وب
 export default {
   async fetch(درخواست, env) {
-    if (env.KV) {
-      const داده_تنظیمات = await env.KV.get("SETTINGS", { type: "json" });
-      if (داده_تنظیمات) {
-        مسیر_اشتراک = داده_تنظیمات.مسیر_اشتراک ?? مسیر_اشتراک;
-        وب_سایت_استتار = داده_تنظیمات.وب_سایت_استتار ?? وب_سایت_استتار;
-        آی‌پی_پروکسی = داده_تنظیمات.آی‌پی_پروکسی ?? آی‌پی_پروکسی;
-        مقصد_پیش_فرض = داده_تنظیمات.مقصد_پیش_فرض ?? مقصد_پیش_فرض;
-        شناسه_تایید = داده_تنظیمات.شناسه_تایید ?? شناسه_تایید;
+    رمز_عبور_مدیریت = env.ADMIN_PASSWORD ?? رمز_عبور_مدیریت;
+    آدرس_گیت_هاب_ورود = env.LOGIN_URL ?? آدرس_گیت_هاب_ورود;
+    آدرس_سی_دی_ان_ورود = env.LOGIN_CDN_URL ?? آدرس_سی_دی_ان_ورود;
+    آدرس_گیت_هاب_داشبورد = env.DASH_URL ?? آدرس_گیت_هاب_داشبورد;
+    آدرس_سی_دی_ان_داشبورد = env.DASH_CDN_URL ?? آدرس_سی_دی_ان_داشبورد;
+
+    if (env.DB) {
+      await مقداردهی_پایگاه_داده(env.DB);
+      const رکوردها = await env.DB.prepare("SELECT key, value FROM settings").all();
+      for (const سطر of رکوردها.results) {
+        if (سطر.key === "مسیر_اشتراک") مسیر_اشتراک = سطر.value;
+        if (سطر.key === "وب_سایت_استتار") وب_سایت_استتار = سطر.value;
+        if (سطر.key === "شناسه_تایید") شناسه_تایید = سطر.value;
+        if (سطر.key === "آی_پی_های_پروکسی") آی_پی_های_پروکسی = تفکیک_ارایه(سطر.value);
+        if (سطر.key === "آدرس_های_تمیز") آدرس_های_تمیز = تفکیک_ارایه(سطر.value);
       }
     }
 
     مسیر_اشتراک = env.SUB_PATH ?? مسیر_اشتراک;
     شناسه_تایید = شناسه_تایید || ایجاد_شناسه();
-    آی‌پی_پروکسی = env.PROXY_IP ?? آی‌پی_پروکسی;
     وب_سایت_استتار = env.FAKE_WEB ?? وب_سایت_استتار;
-    آدرس_گیت_هاب_داشبورد = env.DASH_URL ?? آدرس_گیت_هاب_داشبورد;
-    آدرس_سی_دی_ان_داشبورد = env.DASH_CDN_URL ?? آدرس_سی_دی_ان_داشبورد;
+    if (env.PROXY_IP) آی_پی_های_پروکسی = تفکیک_ارایه(env.PROXY_IP);
+    if (env.CLEAN_IP) آدرس_های_تمیز = تفکیک_ارایه(env.CLEAN_IP);
 
     const url = new URL(درخواست.url);
     const هدر_ارتقا = درخواست.headers.get("Upgrade");
@@ -50,6 +60,8 @@ export default {
       وی۲ری: `/${encodeURI(مسیر_اشتراک)}/${وی۲ری}`,
       کلش: `/${encodeURI(مسیر_اشتراک)}/${کلش}`,
       تجمیع_اشتراک: `/${encodeURI(مسیر_اشتراک)}/info`,
+      صفحه_ورود: `/${encodeURI(مسیر_اشتراک)}/login`,
+      ای_پی_ای_ورود: `/${encodeURI(مسیر_اشتراک)}/api/login`,
       داشبورد: `/${encodeURI(مسیر_اشتراک)}/dash`,
       ای_پی_ای: `/${encodeURI(مسیر_اشتراک)}/api/settings`,
       اشتراک_عمومی: `/${encodeURI(مسیر_اشتراک)}`,
@@ -58,6 +70,8 @@ export default {
     const مسیر_صحیح_است = url.pathname === پیکربندی_مسیر.وی۲ری ||
                           url.pathname === پیکربندی_مسیر.کلش ||
                           url.pathname === پیکربندی_مسیر.تجمیع_اشتراک ||
+                          url.pathname === پیکربندی_مسیر.صفحه_ورود ||
+                          url.pathname === پیکربندی_مسیر.ای_پی_ای_ورود ||
                           url.pathname === پیکربندی_مسیر.داشبورد ||
                           url.pathname === پیکربندی_مسیر.ای_پی_ای ||
                           url.pathname === `/${encodeURI(مسیر_اشتراک)}`;
@@ -91,17 +105,32 @@ export default {
     }
 
     if (!درخواست_وب_سوکت) {
-      if (url.pathname === پیکربندی_مسیر.وی۲ری) {
+      if (url.pathname === پیکربندی_مسیر.صفحه_ورود) {
+        return await بارگذاری_صفحه_ورود();
+      }
+      else if (url.pathname === پیکربندی_مسیر.ای_پی_ای_ورود) {
+        return await مدیریت_ورود(درخواست);
+      }
+      else if (url.pathname === پیکربندی_مسیر.داشبورد) {
+        if (!بررسی_مجوز(درخواست)) {
+          return Response.redirect(`${url.origin}${پیکربندی_مسیر.صفحه_ورود}`, 302);
+        }
+        return await بارگذاری_داشبورد();
+      }
+      else if (url.pathname === پیکربندی_مسیر.ای_پی_ای) {
+        if (!بررسی_مجوز(درخواست)) {
+          return new Response(JSON.stringify({ خطا: "عدم دسترسی" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json;charset=utf-8" },
+          });
+        }
+        return await مدیریت_تنظیمات(درخواست, env);
+      }
+      else if (url.pathname === پیکربندی_مسیر.وی۲ری) {
         return پیکربندی_وی۲ری(درخواست.headers.get("Host"));
       }
       else if (url.pathname === پیکربندی_مسیر.کلش) {
         return پیکربندی_کلش(درخواست.headers.get("Host"));
-      }
-      else if (url.pathname === پیکربندی_مسیر.داشبورد) {
-        return await بارگذاری_داشبورد();
-      }
-      else if (url.pathname === پیکربندی_مسیر.ای_پی_ای) {
-        return await مدیریت_تنظیمات(درخواست, env);
       }
       else if (url.pathname === پیکربندی_مسیر.تجمیع_اشتراک) {
         return اطلاعات_تجمیعی(درخواست.headers.get("Host"));
@@ -195,12 +224,13 @@ async function راه‌اندازی_خط_لوله(رابط_وب_سوکت) {
 
     const نوشتن_داده_اولیه = داده_ویلس.slice(شاخص_اطلاعات_آدرس + طول_آدرس);
 
-    try {
+     try {
       رابط_تی‌سی‌پی = connect({ hostname: آدرس_مقصد, port: پورت_مقصد });
       await رابط_تی‌سی‌پی.opened;
     } catch {
-      const [آدرس_آی‌پی_پروکسی, پورت_آی‌پی_پروکسی = پورت_مقصد] = آی‌پی_پروکسی.split(":");
-      رابط_تی‌سی‌پی = connect({ hostname: آدرس_آی‌پی_پروکسی, port: پورت_آی‌پی_پروکسی });
+      const پروکسی_انتخابی = آی_پی_های_پروکسی[Math.floor(Math.random() * آی_پی_های_پروکسی.length)] || "proxyip.cmliussss.net";
+      const [آدرس_آی_پی_پروکسی, پورت_آی_پی_پروکسی = پورت_مقصد] = پروکسی_انتخابی.split(":");
+      رابط_تی‌سی‌پی = connect({ hostname: آدرس_آی‌پی_پروکسی, port: Number(پورت_آی_پی_پروکسی) });
       await رابط_تی‌سی‌پی.opened;
     }
 
@@ -274,21 +304,22 @@ async function رابط_راهنما() {
 }
 
 function پیکربندی_وی۲ری(hostName) {
-  let آدرس_نهایی = hostName.endsWith('.pages.dev') ? مقصد_پیش_فرض : hostName;
+  const لیست_آدرس_ها = hostName.endsWith('.pages.dev') ? آدرس_های_تمیز : [hostName, ...آدرس_های_تمیز];
+  const پیکربندی_ها = [...new Set(لیست_آدرس_ها)].map((آدرس) => {
+    return `${ویلس}://${شناسه_تایید}@${آدرس}:443?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}#${encodeURIComponent(آدرس)}`;
+  });
 
-  const محتوای_پیکربندی = `${ویلس}://${شناسه_تایید}@${آدرس_نهایی}:443?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}#${آدرس_نهایی}`;
-
-  return new Response(محتوای_پیکربندی);
+  return new Response(پیکربندی_ها.join("\n"));
 }
 
 function پیکربندی_کلش(hostName) {
-  let آدرس_نهایی = hostName.endsWith('.pages.dev') ? مقصد_پیش_فرض : hostName;
+  const لیست_آدرس_ها = hostName.endsWith('.pages.dev') ? آدرس_های_تمیز : [hostName, ...آدرس_های_تمیز];
+  const گره_های_منحصر = [...new Set(لیست_آدرس_ها)];
 
-  const محتوای_پیکربندی = `
-proxies:
-- name: ${آدرس_نهایی}
+  const بخش_پروکسی_ها = گره_های_منحصر.map((آدرس) => `
+- name: ${آدرس}
   type: ${ویلس}
-  server: ${آدرس_نهایی}
+  server: ${آدرس}
   port: 443
   uuid: ${شناسه_تایید}
   udp: true
@@ -298,13 +329,19 @@ proxies:
   ws-opts:
     headers:
       Host: ${hostName}
-      User-Agent: Chrome
+      User-Agent: Chrome`).join("\n");
+
+  const پروکسی_های_انتخابی = گره_های_منحصر.map((آدرس) => `    - ${آدرس}`).join("\n");
+
+  const محتوای_پیکربندی = `
+proxies:
+${بخش_پروکسی_ها}
 
 proxy-groups:
 - name: لیست پروکسی‌ها
   type: select
   proxies:
-    - ${آدرس_نهایی}
+${پروکسی_های_انتخابی}
 
 rules:
   - GEOSITE,cn,DIRECT
@@ -344,11 +381,11 @@ async function بارگذاری_داشبورد() {
 async function مدیریت_تنظیمات(درخواست, env) {
   if (درخواست.method === "GET") {
     const داده = {
-      مسیر_اشتراک: مسیر_اشتراک,
+      مسیر_اشتراک,
       وب_سایت_استتار: وب_سایت_استتار || "",
-      شناسه_تایید: شناسه_تایید,
-      آی_پی_پروکسی: آی‌پی_پروکسی,
-      مقصد_پیش_فرض: مقصد_پیش_فرض,
+      شناسه_تایید,
+      آی_پی_های_پروکسی,
+      آدرس_های_تمیز,
     };
     return new Response(JSON.stringify(داده), {
       headers: { "Content-Type": "application/json;charset=utf-8" },
@@ -357,32 +394,29 @@ async function مدیریت_تنظیمات(درخواست, env) {
 
   if (درخواست.method === "POST") {
     try {
-      const داده_ورودی = await درخواست.json();
+      const ورودی = await درخواست.json();
 
-      مسیر_اشتراک = داده_ورودی.مسیر_اشتراک ?? مسیر_اشتراک;
-      وب_سایت_استتار = داده_ورودی.وب_سایت_استتار ?? وب_سایت_استتار;
-      شناسه_تایید = داده_ورودی.شناسه_تایید ?? شناسه_تایید;
-      آی‌پی_پروکسی = داده_ورودی.آی_پی_پروکسی ?? آی‌پی_پروکسی;
-      مقصد_پیش_فرض = داده_ورودی.مقصد_پیش_فرض ?? مقصد_پیش_فرض;
+      if (ورودی.مسیر_اشتراک) مسیر_اشتراک = ورودی.مسیر_اشتراک;
+      if (ورودی.وب_سایت_استتار !== undefined) وب_سایت_استتار = ورودی.وب_سایت_استتار;
+      if (ورودی.شناسه_تایید) شناسه_تایید = ورودی.شناسه_تایید;
+      if (ورودی.آی_پی_های_پروکسی) آی_پی_های_پروکسی = تفکیک_ارایه(ورودی.آی_پی_های_پروکسی);
+      if (ورودی.آدرس_های_تمیز) آدرس_های_تمیز = تفکیک_ارایه(ورودی.آدرس_های_تمیز);
 
-      if (env.KV) {
-        await env.KV.put(
-          "SETTINGS",
-          JSON.stringify({
-            مسیر_اشتراک,
-            وب_سایت_استتار,
-            شناسه_تایید,
-            آی_پی_پروکسی: آی‌پی_پروکسی,
-            مقصد_پیش_فرض,
-          })
-        );
+      if (env.DB) {
+        await env.DB.batch([
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("مسیر_اشتراک", مسیر_اشتراک),
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("وب_سایت_استتار", وب_سایت_استتار),
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("شناسه_تایید", شناسه_تایید),
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("آی_پی_های_پروکسی", آی_پی_های_پروکسی.join("\n")),
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind("آدرس_های_تمیز", آدرس_های_تمیز.join("\n")),
+        ]);
       }
 
       return new Response(JSON.stringify({ موفقیت: true }), {
         headers: { "Content-Type": "application/json;charset=utf-8" },
       });
     } catch {
-      return new Response(JSON.stringify({ موفقیت: false, پیام: "فرمت نامعتبر است" }), {
+      return new Response(JSON.stringify({ موفقیت: false, پیام: "خطا در پردازش اطلاعات" }), {
         status: 400,
         headers: { "Content-Type": "application/json;charset=utf-8" },
       });
@@ -390,4 +424,87 @@ async function مدیریت_تنظیمات(درخواست, env) {
   }
 
   return new Response(null, { status: 405 });
+}
+
+// بارگذاری صفحه ورود از گیت‌هاب یا jsDelivr
+async function بارگذاری_صفحه_ورود() {
+  const منابع = [آدرس_گیت_هاب_ورود, آدرس_سی_دی_ان_ورود];
+  for (const منبع of منابع) {
+    if (!منبع) continue;
+    try {
+      const پاسخ = await fetch(منبع);
+      if (پاسخ.ok) {
+        const html = await پاسخ.text();
+        return new Response(html, {
+          status: 200,
+          headers: { "Content-Type": "text/html;charset=utf-8" },
+        });
+      }
+    } catch (خطا) {
+      console.error(`[خطا در دریافت صفحه ورود از ${منبع}]: ${خطا.message}`);
+    }
+  }
+  return new Response("Failed to load login page from GitHub or jsDelivr.", {
+    status: 502,
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+  });
+}
+
+// پردازش درخواست ورود و احراز هویت
+async function مدیریت_ورود(درخواست) {
+  if (درخواست.method !== "POST") {
+    return new Response(null, { status: 405 });
+  }
+
+  try {
+    const { password } = await درخواست.json();
+    if (password === رمز_عبور_مدیریت) {
+      const توکن = btoa(رمز_عبور_مدیریت);
+      return new Response(JSON.stringify({ موفقیت: true, توکن }), {
+        headers: {
+          "Content-Type": "application/json;charset=utf-8",
+          "Set-Cookie": `admin_token=${توکن}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`,
+        },
+      });
+    }
+    return new Response(JSON.stringify({ موفقیت: false, پیام: "رمز عبور نادرست است" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json;charset=utf-8" },
+    });
+  } catch {
+    return new Response(JSON.stringify({ موفقیت: false, پیام: "درخواست نامعتبر است" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json;charset=utf-8" },
+    });
+  }
+}
+
+// اعتبارسنجی کوکی یا هدر دسترسی
+function بررسی_مجوز(درخواست) {
+  const توکن_صحیح = btoa(رمز_عبور_مدیریت);
+  const هدر_احراز = درخواست.headers.get("Authorization");
+  if (هدر_احراز === `Bearer ${توکن_صحیح}`) {
+    return true;
+  }
+  const کوکی = درخواست.headers.get("Cookie") || "";
+  return کوکی.includes(`admin_token=${توکن_صحیح}`);
+}
+
+// مقداردهی اولیه جدول تنظیمات در دیتابیس D1
+async function مقداردهی_پایگاه_داده(db) {
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    )
+  `).run();
+}
+
+// تفکیک ورودی رشته‌ای یا آرایه‌ای به لیست تمیز
+function تفکیک_ارایه(ورودی) {
+  if (Array.isArray(ورودی)) return ورودی;
+  if (typeof ورودی === "string") {
+    return ورودی.split(/[\r\n,]+/).map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
 }
