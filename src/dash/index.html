@@ -49,7 +49,7 @@
       background-color: var(--surface);
       background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
       background-size: 24px 24px;
-      padding: 16px 12px 110px;
+      padding: 16px 12px 80px;
       line-height: 1.5;
     }
     .container {
@@ -153,7 +153,7 @@
     /* نوبار پایین در موبایل (Bottom Navbar) */
     @media (max-width: 768px) {
       body {
-        padding-bottom: 160px;
+        padding-bottom: 90px;
       }
       .dock-nav {
         position: fixed;
@@ -161,7 +161,7 @@
         left: 0;
         right: 0;
         margin: 0;
-        padding: 8px 10px 14px;
+        padding: 8px 8px 12px;
         background: var(--card-bg);
         border-top: 3px solid var(--border);
         box-shadow: 0 -4px 0px rgba(0,0,0,0.15);
@@ -179,14 +179,14 @@
         flex-direction: column;
         justify-content: center;
         gap: 2px;
-        padding: 8px 4px;
+        padding: 6px 2px;
         font-size: 0.6875rem;
         border: 2px solid var(--border);
         box-shadow: 2px 2px 0px var(--border);
         text-align: center;
       }
       .dock-item .icon {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
       }
     }
 
@@ -367,30 +367,23 @@
       font-size: 0.75rem;
     }
 
-    /* دکمه شناور ذخیره تغییرات */
-    .floating-save {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      max-width: 960px;
-      margin: 0 auto;
-      z-index: 50;
-    }
-    @media (max-width: 768px) {
-      .floating-save {
-        bottom: 74px;
-        left: 12px;
-        right: 12px;
-      }
+    /* ظرف دکمه ذخیره - قرارگیری طبیعی در انتهای فرم */
+    .save-container {
+      margin-top: 20px;
+      margin-bottom: 24px;
+      display: none; /* پیش‌فرض در تب لینک‌ها مخفی است */
     }
     .btn-save {
       width: 100%;
       padding: 14px;
       font-size: 1rem;
+      font-weight: 800;
       background: var(--primary);
       color: #1C293C;
+      border: 3px solid var(--border);
+      border-radius: var(--radius-sm);
       box-shadow: 4px 4px 0px var(--border);
+      cursor: pointer;
     }
 
     .toast {
@@ -577,8 +570,8 @@
       </div>
     </div>
 
-    <!-- نوار ثابت ذخیره تغییرات -->
-    <div class="floating-save">
+    <!-- دکمه ذخیره در انتهای تب‌های قابل ویرایش -->
+    <div class="save-container" id="saveContainer">
       <button class="btn btn-save" onclick="saveSettings()">ذخیره تمامی تغییرات 💾</button>
     </div>
   </div>
@@ -592,6 +585,14 @@
       document.querySelectorAll('.dock-item').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       el.classList.add('active');
+
+      // دکمه ذخیره در تب لینک‌ها مخفی می‌شود
+      const saveBtn = document.getElementById('saveContainer');
+      if (tabId === 'tab-subs') {
+        saveBtn.style.display = 'none';
+      } else {
+        saveBtn.style.display = 'block';
+      }
     }
 
     async function loadData() {
