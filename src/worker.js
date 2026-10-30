@@ -35,14 +35,20 @@ export default {
     آدرس_سی_دی_ان_داشبورد = env.DASH_CDN_URL ?? آدرس_سی_دی_ان_داشبورد;
 
     if (env.DB) {
-      await مقداردهی_پایگاه_داده(env.DB);
-      const رکوردها = await env.DB.prepare("SELECT key, value FROM settings").all();
-      for (const سطر of رکوردها.results) {
-        if (سطر.key === "مسیر_اشتراک") مسیر_اشتراک = سطر.value;
-        if (سطر.key === "وب_سایت_استتار") وب_سایت_استتار = سطر.value;
-        if (سطر.key === "شناسه_تایید") شناسه_تایید = سطر.value;
-        if (سطر.key === "آی_پی_های_پروکسی") آی_پی_های_پروکسی = تفکیک_ارایه(سطر.value);
-        if (سطر.key === "آدرس_های_تمیز") آدرس_های_تمیز = تفکیک_ارایه(سطر.value);
+      try {
+        await مقداردهی_پایگاه_داده(env.DB);
+        const رکوردها = await env.DB.prepare("SELECT key, value FROM settings").all();
+        if (رکوردها?.results) {
+          for (const سطر of رکوردها.results) {
+            if (سطر.key === "مسیر_اشتراک") مسیر_اشتراک = سطر.value;
+            if (سطر.key === "وب_سایت_استتار") وب_سایت_استتار = سطر.value;
+            if (سطر.key === "شناسه_تایید") شناسه_تایید = سطر.value;
+            if (سطر.key === "آی_پی_های_پروکسی") آی_پی_های_پروکسی = تفکیک_ارایه(سطر.value);
+            if (سطر.key === "آدرس_های_تمیز") آدرس_های_تمیز = تفکیک_ارایه(سطر.value);
+          }
+        }
+      } catch (خطای_دیتابیس) {
+        console.error(`[خطا در ارتباط با دیتابیس D1]: ${خطای_دیتابیس.message}`);
       }
     }
 
@@ -56,68 +62,42 @@ export default {
     const هدر_ارتقا = درخواست.headers.get("Upgrade");
     const درخواست_وب_سوکت = هدر_ارتقا == "websocket";
 
-    const پیکربندی_مسیر = {
-      وی۲ری: `/${encodeURI(مسیر_اشتراک)}/${وی۲ری}`,
-      کلش: `/${encodeURI(مسیر_اشتراک)}/${کلش}`,
-      تجمیع_اشتراک: `/${encodeURI(مسیر_اشتراک)}/info`,
-      صفحه_ورود: `/${encodeURI(مسیر_اشتراک)}/login`,
-      ای_پی_ای_ورود: `/${encodeURI(مسیر_اشتراک)}/api/login`,
-      داشبورد: `/${encodeURI(مسیر_اشتراک)}/dash`,
-      ای_پی_ای: `/${encodeURI(مسیر_اشتراک)}/api/settings`,
-      اشتراک_عمومی: `/${encodeURI(مسیر_اشتراک)}`,
-    };
+    // رمزگشایی مسیر جهت تطابق صحیح کلمات فارسی
+    const مسیر_جاری = decodeURIComponent(url.pathname);
+    const پیشوند = `/${مسیر_اشتراک}`;
 
-    const مسیر_صحیح_است = url.pathname === پیکربندی_مسیر.وی۲ری ||
-                          url.pathname === پیکربندی_مسیر.کلش ||
-                          url.pathname === پیکربندی_مسیر.تجمیع_اشتراک ||
-                          url.pathname === پیکربندی_مسیر.صفحه_ورود ||
-                          url.pathname === پیکربندی_مسیر.ای_پی_ای_ورود ||
-                          url.pathname === پیکربندی_مسیر.داشبورد ||
-                          url.pathname === پیکربندی_مسیر.ای_پی_ای ||
-                          url.pathname === `/${encodeURI(مسیر_اشتراک)}`;
-
-    if (!درخواست_وب_سوکت && !مسیر_صحیح_است) {
-      if (وب_سایت_استتار) {
-        try {
-          const targetBase = وب_سایت_استتار.startsWith('http://') || وب_سایت_استتار.startsWith('https://')
-            ? وب_سایت_استتار
-            : `https://${وب_سایت_استتار}`;
-
-          const targetUrl = new URL(targetBase);
-          targetUrl.pathname = url.pathname;
-          targetUrl.search = url.search;
-
-          const آبجکت_درخواست = new Request(targetUrl.toString(), {
-            method: درخواست.method,
-            headers: درخواست.headers,
-            body: درخواست.body,
-          });
-
-          const آبجکت_پاسخ = await fetch(آبجکت_درخواست);
-          return آبجکت_پاسخ;
-        } catch {
-          console.error(`[خطا در درخواست وب‌سایت استتار] مقصد: ${وب_سایت_استتار}`);
-          return new Response(null, { status: 404 });
-        }
-      } else {
-        return new Response(null, { status: 404 });
-      }
-    }
+    const تطابق_ورود = مسیر_جاری === `${پیشوند}/login` || مسیر_جاری === "/login";
+    const تطابق_ای_پی_ای_ورود = مسیر_جاری === `${پیشوند}/api/login` || مسیر_جاری === "/api/login";
+    const تطابق_داشبورد = مسیر_جاری === `${پیشوند}/dash` || مسیر_جاری === "/dash";
+    const تطابق_تنظیمات = مسیر_جاری === `${پیشوند}/api/settings` || مسیر_جاری === "/api/settings";
+    const تطابق_وی۲ری = مسیر_جاری === `${پیشوند}/${وی۲ری}`;
+    const تطابق_کلش = مسیر_جاری === `${پیشوند}/${کلش}`;
+    const تطابق_تجمیع = مسیر_جاری === `${پیشوند}/info`;
+    const تطابق_اشتراک = مسیر_جاری === پیشوند;
+    const مسیر_ریشه = مسیر_جاری === "/" || مسیر_جاری === "";
 
     if (!درخواست_وب_سوکت) {
-      if (url.pathname === پیکربندی_مسیر.صفحه_ورود) {
+      if (مسیر_ریشه) {
+        if (وب_سایت_استتار) {
+          return await هدایت_به_استتار(درخواست, url);
+        }
+        // در صورت خالی بودن ریشه به صفحه ورود هدایت می‌شود
+        return Response.redirect(`${url.origin}${پیشوند}/login`, 302);
+      }
+
+      if (تطابق_ورود) {
         return await بارگذاری_صفحه_ورود();
       }
-      else if (url.pathname === پیکربندی_مسیر.ای_پی_ای_ورود) {
+      else if (تطابق_ای_پی_ای_ورود) {
         return await مدیریت_ورود(درخواست);
       }
-      else if (url.pathname === پیکربندی_مسیر.داشبورد) {
+      else if (تطابق_داشبورد) {
         if (!بررسی_مجوز(درخواست)) {
-          return Response.redirect(`${url.origin}${پیکربندی_مسیر.صفحه_ورود}`, 302);
+          return Response.redirect(`${url.origin}${پیشوند}/login`, 302);
         }
         return await بارگذاری_داشبورد();
       }
-      else if (url.pathname === پیکربندی_مسیر.ای_پی_ای) {
+      else if (تطابق_تنظیمات) {
         if (!بررسی_مجوز(درخواست)) {
           return new Response(JSON.stringify({ خطا: "عدم دسترسی" }), {
             status: 401,
@@ -126,16 +106,16 @@ export default {
         }
         return await مدیریت_تنظیمات(درخواست, env);
       }
-      else if (url.pathname === پیکربندی_مسیر.وی۲ری) {
+      else if (تطابق_وی۲ری) {
         return پیکربندی_وی۲ری(درخواست.headers.get("Host"));
       }
-      else if (url.pathname === پیکربندی_مسیر.کلش) {
+      else if (تطابق_کلش) {
         return پیکربندی_کلش(درخواست.headers.get("Host"));
       }
-      else if (url.pathname === پیکربندی_مسیر.تجمیع_اشتراک) {
+      else if (تطابق_تجمیع) {
         return اطلاعات_تجمیعی(درخواست.headers.get("Host"));
       }
-      else if (url.pathname === پیکربندی_مسیر.اشتراک_عمومی) {
+      else if (تطابق_اشتراک) {
         const عامل_کاربر = درخواست.headers.get("User-Agent").toLowerCase();
         const سازنده_پیکربندی = {
           [وی۲ری]: پیکربندی_وی۲ری,
@@ -146,6 +126,12 @@ export default {
         const تولید_پیکربندی = سازنده_پیکربندی[ابزار || "tips"];
         return تولید_پیکربندی(درخواست.headers.get("Host"));
       }
+
+      if (وب_سایت_استتار) {
+        return await هدایت_به_استتار(درخواست, url);
+      }
+
+      return new Response("Not Found", { status: 404 });
     }
 
     if (درخواست_وب_سوکت) {
@@ -509,6 +495,29 @@ function بررسی_مجوز(درخواست) {
   }
   const کوکی = درخواست.headers.get("Cookie") || "";
   return کوکی.includes(`admin_token=${توکن_صحیح}`);
+}
+
+// پروکسی وب‌سایت استتار
+async function هدایت_به_استتار(درخواست, url) {
+  try {
+    const مبدا = وب_سایت_استتار.startsWith('http://') || وب_سایت_استتار.startsWith('https://')
+      ? وب_سایت_استتار
+      : `https://${وب_سایت_استتار}`;
+
+    const آدرس_هدف = new URL(مبدا);
+    آدرس_هدف.pathname = url.pathname;
+    آدرس_هدف.search = url.search;
+
+    const درخواست_پروکسی = new Request(آدرس_هدف.toString(), {
+      method: درخواست.method,
+      headers: درخواست.headers,
+      body: درخواست.body,
+    });
+
+    return await fetch(درخواست_پروکسی);
+  } catch {
+    return new Response("Not Found", { status: 404 });
+  }
 }
 
 // مقداردهی اولیه جدول تنظیمات در دیتابیس D1
