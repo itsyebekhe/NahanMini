@@ -5,8 +5,9 @@ let مسیر_اشتراک = "مسیر-اشتراک";
 let وب_سایت_استتار;
 let شناسه_تایید;
 let آی‌پی_پروکسی = "proxyip.cmliussss.net";
-
-const مقصد_پیش_فرض = "openai.com";
+let مقصد_پیش_فرض = "openai.com";
+let آدرس_گیت_هاب_داشبورد = "https://raw.githubusercontent.com/username/repository/main/src/dash/index.html";
+let آدرس_سی_دی_ان_داشبورد = "https://cdn.jsdelivr.net/gh/username/repository@main/src/dash/index.html";
 
 // تفکیک کلمات کلیدی (جهت جلوگیری از شناسایی)
 const تفکیک_وی۲ری = ["v2", "ray"];
@@ -23,10 +24,23 @@ const فرمت_کلید = Array.from({ length: 256 }, (_, i) => (i + 256).toStri
 // ورودی وب
 export default {
   async fetch(درخواست, env) {
+    if (env.KV) {
+      const داده_تنظیمات = await env.KV.get("SETTINGS", { type: "json" });
+      if (داده_تنظیمات) {
+        مسیر_اشتراک = داده_تنظیمات.مسیر_اشتراک ?? مسیر_اشتراک;
+        وب_سایت_استتار = داده_تنظیمات.وب_سایت_استتار ?? وب_سایت_استتار;
+        آی‌پی_پروکسی = داده_تنظیمات.آی‌پی_پروکسی ?? آی‌پی_پروکسی;
+        مقصد_پیش_فرض = داده_تنظیمات.مقصد_پیش_فرض ?? مقصد_پیش_فرض;
+        شناسه_تایید = داده_تنظیمات.شناسه_تایید ?? شناسه_تایید;
+      }
+    }
+
     مسیر_اشتراک = env.SUB_PATH ?? مسیر_اشتراک;
-    شناسه_تایید = ایجاد_شناسه();
+    شناسه_تایید = شناسه_تایید || ایجاد_شناسه();
     آی‌پی_پروکسی = env.PROXY_IP ?? آی‌پی_پروکسی;
-    وب_سایت_استتار = env.FAKE_WEB;
+    وب_سایت_استتار = env.FAKE_WEB ?? وب_سایت_استتار;
+    آدرس_گیت_هاب_داشبورد = env.DASH_URL ?? آدرس_گیت_هاب_داشبورد;
+    آدرس_سی_دی_ان_داشبورد = env.DASH_CDN_URL ?? آدرس_سی_دی_ان_داشبورد;
 
     const url = new URL(درخواست.url);
     const هدر_ارتقا = درخواست.headers.get("Upgrade");
@@ -36,12 +50,16 @@ export default {
       وی۲ری: `/${encodeURI(مسیر_اشتراک)}/${وی۲ری}`,
       کلش: `/${encodeURI(مسیر_اشتراک)}/${کلش}`,
       تجمیع_اشتراک: `/${encodeURI(مسیر_اشتراک)}/info`,
+      داشبورد: `/${encodeURI(مسیر_اشتراک)}/dash`,
+      ای_پی_ای: `/${encodeURI(مسیر_اشتراک)}/api/settings`,
       اشتراک_عمومی: `/${encodeURI(مسیر_اشتراک)}`,
     };
 
     const مسیر_صحیح_است = url.pathname === پیکربندی_مسیر.وی۲ری ||
                           url.pathname === پیکربندی_مسیر.کلش ||
                           url.pathname === پیکربندی_مسیر.تجمیع_اشتراک ||
+                          url.pathname === پیکربندی_مسیر.داشبورد ||
+                          url.pathname === پیکربندی_مسیر.ای_پی_ای ||
                           url.pathname === `/${encodeURI(مسیر_اشتراک)}`;
 
     if (!درخواست_وب_سوکت && !مسیر_صحیح_است) {
@@ -78,6 +96,12 @@ export default {
       }
       else if (url.pathname === پیکربندی_مسیر.کلش) {
         return پیکربندی_کلش(درخواست.headers.get("Host"));
+      }
+      else if (url.pathname === پیکربندی_مسیر.داشبورد) {
+        return await بارگذاری_داشبورد();
+      }
+      else if (url.pathname === پیکربندی_مسیر.ای_پی_ای) {
+        return await مدیریت_تنظیمات(درخواست, env);
       }
       else if (url.pathname === پیکربندی_مسیر.تجمیع_اشتراک) {
         return اطلاعات_تجمیعی(درخواست.headers.get("Host"));
@@ -289,4 +313,81 @@ rules:
 `;
 
   return new Response(محتوای_پیکربندی);
+}
+
+// بارگذاری داشبورد از گیت‌هاب و مدیریت تنظیمات
+async function بارگذاری_داشبورد() {
+  const منابع = [آدرس_گیت_هاب_داشبورد, آدرس_سی_دی_ان_داشبورد];
+
+  for (const منبع of منابع) {
+    if (!منبع) continue;
+    try {
+      const پاسخ = await fetch(منبع);
+      if (پاسخ.ok) {
+        const html = await پاسخ.text();
+        return new Response(html, {
+          status: 200,
+          headers: { "Content-Type": "text/html;charset=utf-8" },
+        });
+      }
+    } catch (خطا) {
+      console.error(`[خطا در دریافت داشبورد از ${منبع}]: ${خطا.message}`);
+    }
+  }
+
+  return new Response("Failed to load dashboard from GitHub or jsDelivr.", {
+    status: 502,
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+  });
+}
+
+async function مدیریت_تنظیمات(درخواست, env) {
+  if (درخواست.method === "GET") {
+    const داده = {
+      مسیر_اشتراک: مسیر_اشتراک,
+      وب_سایت_استتار: وب_سایت_استتار || "",
+      شناسه_تایید: شناسه_تایید,
+      آی_پی_پروکسی: آی‌پی_پروکسی,
+      مقصد_پیش_فرض: مقصد_پیش_فرض,
+    };
+    return new Response(JSON.stringify(داده), {
+      headers: { "Content-Type": "application/json;charset=utf-8" },
+    });
+  }
+
+  if (درخواست.method === "POST") {
+    try {
+      const داده_ورودی = await درخواست.json();
+
+      مسیر_اشتراک = داده_ورودی.مسیر_اشتراک ?? مسیر_اشتراک;
+      وب_سایت_استتار = داده_ورودی.وب_سایت_استتار ?? وب_سایت_استتار;
+      شناسه_تایید = داده_ورودی.شناسه_تایید ?? شناسه_تایید;
+      آی‌پی_پروکسی = داده_ورودی.آی_پی_پروکسی ?? آی‌پی_پروکسی;
+      مقصد_پیش_فرض = داده_ورودی.مقصد_پیش_فرض ?? مقصد_پیش_فرض;
+
+      if (env.KV) {
+        await env.KV.put(
+          "SETTINGS",
+          JSON.stringify({
+            مسیر_اشتراک,
+            وب_سایت_استتار,
+            شناسه_تایید,
+            آی_پی_پروکسی: آی‌پی_پروکسی,
+            مقصد_پیش_فرض,
+          })
+        );
+      }
+
+      return new Response(JSON.stringify({ موفقیت: true }), {
+        headers: { "Content-Type": "application/json;charset=utf-8" },
+      });
+    } catch {
+      return new Response(JSON.stringify({ موفقیت: false, پیام: "فرمت نامعتبر است" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json;charset=utf-8" },
+      });
+    }
+  }
+
+  return new Response(null, { status: 405 });
 }

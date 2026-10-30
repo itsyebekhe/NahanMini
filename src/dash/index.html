@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>داشبورد مدیریت</title>
+  <style>
+    body { font-family: sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; padding: 40px 20px; }
+    .card { background: #1e1e1e; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    h2 { margin-top: 0; text-align: center; }
+    label { display: block; margin-top: 15px; font-size: 14px; color: #aaa; }
+    input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; margin-top: 25px; background: #0070f3; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #0051b3; }
+    #status { margin-top: 15px; text-align: center; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>تنظیمات پروکسی</h2>
+    <label>مسیر اشتراک</label>
+    <input id="subPath" type="text" />
+    <label>وب‌سایت استتار (Fake Web)</label>
+    <input id="fakeWeb" type="text" />
+    <label>شناسه تایید (UUID)</label>
+    <input id="uuid" type="text" />
+    <label>آی‌پی پروکسی (Proxy IP)</label>
+    <input id="proxyIp" type="text" />
+    <label>مقصد پیش‌فرض (Host / Clean IP)</label>
+    <input id="defaultDomain" type="text" />
+    <button onclick="saveSettings()">ذخیره تنظیمات</button>
+    <div id="status"></div>
+  </div>
+  <script>
+    const apiPath = location.pathname.replace(/\/dash$/, '/api/settings');
+    async function loadSettings() {
+      const res = await fetch(apiPath);
+      const data = await res.json();
+      document.getElementById('subPath').value = data.مسیر_اشتراک || '';
+      document.getElementById('fakeWeb').value = data.وب_سایت_استتار || '';
+      document.getElementById('uuid').value = data.شناسه_تایید || '';
+      document.getElementById('proxyIp').value = data.آی_پی_پروکسی || '';
+      document.getElementById('defaultDomain').value = data.مقصد_پیش_فرض || '';
+    }
+    async function saveSettings() {
+      const status = document.getElementById('status');
+      status.innerText = 'در حال ذخیره...';
+      const body = {
+        مسیر_اشتراک: document.getElementById('subPath').value,
+        وب_سایت_استتار: document.getElementById('fakeWeb').value,
+        شناسه_تایید: document.getElementById('uuid').value,
+        آی_پی_پروکسی: document.getElementById('proxyIp').value,
+        مقصد_پیش_فرض: document.getElementById('defaultDomain').value
+      };
+      const res = await fetch(apiPath, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        status.style.color = '#4caf50';
+        status.innerText = 'تنظیمات با موفقیت ذخیره شد!';
+      } else {
+        status.style.color = '#f44336';
+        status.innerText = 'خطا در ذخیره تنظیمات.';
+      }
+    }
+    loadSettings();
+  </script>
+</body>
+</html>
