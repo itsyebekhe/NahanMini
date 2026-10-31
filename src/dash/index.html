@@ -1243,17 +1243,39 @@
     }
 
     function autoPairNodes() {
-      const cleanList = document.getElementById('cleanIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
-      const proxyList = document.getElementById('proxyIps').value.split('\n').map(s=>s.trim()).filter(Boolean);
-      if (cleanList.length === 0) return alert('ابتدا Clean IP وارد کنید.');
+      const cleanList = document.getElementById('cleanIps').value.split('\n').map(s => s.trim()).filter(Boolean);
+      const proxyList = document.getElementById('proxyIps').value.split('\n').map(s => s.trim()).filter(Boolean);
 
-      mappedNodes = cleanList.map((cleanIp, i) => ({
-        cleanIp,
-        proxyIp: proxyList[i % proxyList.length] || '',
-        name: `نود-${i + 1}`,
-        group: 'پیش‌فرض'
-      }));
+      if (cleanList.length === 0) {
+        alert('لطفاً ابتدا در تب "مخزن IP" حداقل یک Clean IP وارد کنید یا از دکمه "کلین آی‌پی‌های اپراتورها" استفاده نمایید.');
+        return;
+      }
+
+      const hasProxies = proxyList.length > 0;
+
+      mappedNodes = cleanList.map((cleanIp, i) => {
+        // تشخیص هوشمند اپراتور در صورتی که آی‌پی از دیتابیس آنلاین انتخاب شده باشد
+        const matchedItem = Array.isArray(allCleanIps) ? allCleanIps.find(item => item.ip === cleanIp) : null;
+        const groupName = matchedItem ? (OPERATOR_NAMES[matchedItem.operator] || matchedItem.operator) : 'پیش‌فرض';
+        const nodeTag = matchedItem ? matchedItem.operator : (i + 1);
+        const assignedProxy = hasProxies ? proxyList[i % proxyList.length] : '';
+
+        return {
+          cleanIp: cleanIp,
+          proxyIp: assignedProxy,
+          name: `نود-${i + 1} (${nodeTag})`,
+          group: groupName
+        };
+      });
+
       renderMappingTable();
+      updateDropdowns();
+
+      if (!hasProxies) {
+        showToast(`✓ تعداد ${mappedNodes.length} نود ساخته شد (بدون Proxy IP ثانویه).`, 'warning');
+      } else {
+        showToast(`✓ تعداد ${mappedNodes.length} نود با موفقیت جفت‌سازی و گروه‌بندی شد!`, 'success');
+      }
     }
 
     function deleteNode(i) {
