@@ -470,6 +470,39 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">لینک‌های اتصال و اشتراک کاربران</span>
+          <span class="badge">GENERATED LINKS</span>
+        </div>
+        <div id="subLinks">در حال دریافت لینک‌ها...</div>
+      </div>
+    </div>
+
+    <!-- تب ۲: هسته و استتار -->
+    <div id="tab-core" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">تنظیمات اصلی هسته</span>
+          <span class="badge">CORE</span>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>مسیر اشتراک (SUB PATH)</label>
+            <input type="text" id="subPath" />
+          </div>
+          <div>
+            <label>شناسه تایید (UUID)</label>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="uuid" />
+              <button class="btn btn-secondary" style="height:42px; padding:0 12px;" onclick="genUUID()">تولید</button>
+            </div>
+          </div>
+        </div>
+        <label>وب‌سایت استتار (FAKE WEB URL)</label>
+        <input type="text" id="fakeWeb" placeholder="https://example.com" />
+      </div>
+
       <!-- کنترل بهینه‌سازی ECH و Fragment (Jasaz Engine) -->
       <div class="card">
         <div class="card-header">
@@ -516,39 +549,6 @@
             <textarea id="subFmInput" style="height:75px; font-size:0.75rem;" oninput="applySubOptimizations()"></textarea>
           </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">لینک‌های اتصال و اشتراک کاربران</span>
-          <span class="badge">GENERATED LINKS</span>
-        </div>
-        <div id="subLinks">در حال دریافت لینک‌ها...</div>
-      </div>
-    </div>
-
-    <!-- تب ۲: هسته و استتار -->
-    <div id="tab-core" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">تنظیمات اصلی هسته</span>
-          <span class="badge">CORE</span>
-        </div>
-        <div class="grid-2">
-          <div>
-            <label>مسیر اشتراک (SUB PATH)</label>
-            <input type="text" id="subPath" />
-          </div>
-          <div>
-            <label>شناسه تایید (UUID)</label>
-            <div style="display:flex; gap:6px;">
-              <input type="text" id="uuid" />
-              <button class="btn btn-secondary" style="height:42px; padding:0 12px;" onclick="genUUID()">تولید</button>
-            </div>
-          </div>
-        </div>
-        <label>وب‌سایت استتار (FAKE WEB URL)</label>
-        <input type="text" id="fakeWeb" placeholder="https://example.com" />
       </div>
     </div>
 
