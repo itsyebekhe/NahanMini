@@ -408,7 +408,7 @@
       <div>
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
           <span class="badge">SYSTEM DOCK</span>
-          <span class="badge" style="background:var(--card-bg);" id="currentVerBadge">v1.0.0</span>
+          <span class="badge" style="background:var(--card-bg);" id="currentVerBadge">v0.0.4</span>
         </div>
         <h1>پنل مدیریت سرور</h1>
       </div>
@@ -423,7 +423,7 @@
       <div class="alert-banner-content">
         <div>
           <h3 style="color:inherit;">🚀 نسخه جدید نهان‌مینی (<span id="latestVerText"></span>) در دسترس است!</h3>
-          <p style="color:inherit;">شما از نسخه <span id="currentVerText">v1.0.0</span> استفاده می‌کنید. جهت دریافت آخرین بهبودها و ویژگی‌های امنیتی، ورکر خود را با یک کلیک در جاساز به‌روزرسانی کنید.</p>
+          <p style="color:inherit;">شما از نسخه <span id="currentVerText">v0.0.4</span> استفاده می‌کنید. جهت دریافت آخرین بهبودها و ویژگی‌های امنیتی، ورکر خود را با یک کلیک در جاساز به‌روزرسانی کنید.</p>
         </div>
         <a id="jasazUpdateBtn" href="https://jasaz.pages.dev/?preset=nahanmini" target="_blank" rel="noopener noreferrer" class="btn" style="background:var(--primary); color:#1C293C; text-decoration:none;">
           ⚡ به‌روزرسانی با جاساز
@@ -740,7 +740,7 @@
         renderMappingTable();
 
         // بررسی نسخه با مقدار دریافتی از ورکر
-        const installedVer = data.نسخه || "1.0.0";
+        const installedVer = data.نسخه || "0.0.4";
         checkVersionUpdate(installedVer);
       } catch (err) {
         showToast('خطا در دریافت اطلاعات سرور.', 'error');
