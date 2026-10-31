@@ -112,10 +112,10 @@ export default {
         return await مدیریت_تنظیمات(درخواست, env);
       }
       else if (تطابق_وی۲ری) {
-        return پیکربندی_وی۲ری(درخواست.headers.get("Host"));
+        return پیکربندی_وی۲ری(درخواست.headers.get("Host"), url);
       }
       else if (تطابق_کلش) {
-        return پیکربندی_کلش(درخواست.headers.get("Host"));
+        return پیکربندی_کلش(درخواست.headers.get("Host"), url);
       }
       else if (تطابق_تجمیع) {
         return اطلاعات_تجمیعی(درخواست.headers.get("Host"));
@@ -308,28 +308,53 @@ function ساخت_لیست_گره_ها(hostName) {
   }));
 }
 
-function پیکربندی_وی۲ری(hostName) {
+function پیکربندی_وی۲ری(hostName, url = new URL(`https://${hostName}`)) {
   const گره_ها = ساخت_لیست_گره_ها(hostName);
+  const با_فرگمنت = url.searchParams.get("fragment") === "1";
+  const با_ای‌سی‌اچ = url.searchParams.get("ech") === "1";
+  const اثر_انگشت = url.searchParams.get("fp") || "chrome";
+
   const پیکربندی_ها = گره_ها.map((نود) => {
     const مسیر_پروکسی = نود.proxyIp ? `/${encodeURI(مسیر_اشتراک)}?proxyip=${encodeURIComponent(نود.proxyIp)}` : `/${encodeURI(مسیر_اشتراک)}`;
-    const برچسب = `[${نود.group || "عمومی"}] ${نود.name || نود.cleanIp}`;
-    return `${ویلس}://${شناسه_تایید}@${نود.cleanIp}:443?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=${encodeURIComponent(مسیر_پروکسی)}#${encodeURIComponent(برچسب)}`;
+    let برچسب = `[${نود.group || "عمومی"}] ${نود.name || نود.cleanIp}`;
+    if (با_فرگمنت) برچسب += " [Frag]";
+    if (با_ای‌سی‌اچ) برچسب += " [ECH]";
+
+    let لینک = `${ویلس}://${شناسه_تایید}@${نود.cleanIp}:443?encryption=none&security=tls&sni=${hostName}&fp=${اثر_انگشت}&type=ws&host=${hostName}&path=${encodeURIComponent(مسیر_پروکسی)}`;
+
+    // افزودن فلگ‌های بهینه‌ساز Fragment و ECH به لینک VLESS
+    if (با_فرگمنت) لینک += "&fragment=104,1,114,1,tlshello";
+    if (با_ای‌سی‌اچ) لینک += "&ech=1";
+
+    return `${لینک}#${encodeURIComponent(برچسب)}`;
   });
 
   return new Response(پیکربندی_ها.join("\n"));
 }
 
-function پیکربندی_کلش(hostName) {
+function پیکربندی_کلش(hostName, url = new URL(`https://${hostName}`)) {
   const گره_ها = ساخت_لیست_گره_ها(hostName);
+  const با_فرگمنت = url.searchParams.get("fragment") === "1";
+  const با_ای‌سی‌اچ = url.searchParams.get("ech") === "1";
+  const اثر_انگشت = url.searchParams.get("fp") || "chrome";
   const دسته_بندی_ها = {};
 
   const بخش_پروکسی_ها = گره_ها.map((نود) => {
     const گروه = نود.group || "عمومی";
-    const نام_نود = `[${گروه}] ${نود.name || نود.cleanIp}`;
+    let نام_نود = `[${گروه}] ${نود.name || نود.cleanIp}`;
+    if (با_فرگمنت) نام_نود += " [Frag]";
+    if (با_ای‌سی‌اچ) نام_نود += " [ECH]";
+
     if (!دسته_بندی_ها[گروه]) دسته_بندی_ها[گروه] = [];
     دسته_بندی_ها[گروه].push(نام_نود);
 
     const مسیر_پروکسی = نود.proxyIp ? `/${encodeURI(مسیر_اشتراک)}?proxyip=${encodeURIComponent(نود.proxyIp)}` : `/${encodeURI(مسیر_اشتراک)}`;
+
+    let تنظیمات_اضافی = `client-fingerprint: ${اثر_انگشت}`;
+    if (با_ای‌سی‌اچ) تنظیمات_اضافی += `\n  ech: true`;
+    if (با_فرگمنت) {
+      تنظیمات_اضافی += `\n  smux:\n    enabled: true\n  packet-encoding: xudp`;
+    }
 
     return `
 - name: "${نام_نود}"
@@ -341,6 +366,7 @@ function پیکربندی_کلش(hostName) {
   tls: true
   sni: ${hostName}
   network: ws
+  ${تنظیمات_اضافی}
   ws-opts:
     path: "${مسیر_پروکسی}"
     headers:

@@ -454,10 +454,58 @@
         </div>
       </div>
 
+      <!-- کنترل بهینه‌سازی ECH و Fragment (Jasaz Engine) -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">لینک‌های اتصال کاربران</span>
-          <span class="badge">LINKS</span>
+          <div>
+            <span class="card-title">تنظیمات ضد فیلترینگ ECH و Fragment</span>
+            <span class="badge badge-secondary" style="margin-right:6px;">JASAZ ENGINE</span>
+          </div>
+          <span class="badge">TUNING</span>
+        </div>
+
+        <div class="grid-2">
+          <label class="sub-item" style="cursor:pointer; margin-bottom:0;">
+            <span><strong>⚡ Fragment:</strong> تکه‌تکه کردن بسته‌های TLS Hello (دور زدن فیلترینگ SNI)</span>
+            <input type="checkbox" id="subFragmentToggle" onchange="applySubOptimizations()" style="width:20px; height:20px; margin:0;" checked />
+          </label>
+          <label class="sub-item" style="cursor:pointer; margin-bottom:0;">
+            <span><strong>🔒 ECH:</strong> رمزنگاری کلاینت‌هلو (Encrypted Client Hello)</span>
+            <input type="checkbox" id="subEchToggle" onchange="applySubOptimizations()" style="width:20px; height:20px; margin:0;" />
+          </label>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>اثر انگشت مرورگر (uTLS Fingerprint):</label>
+          <select id="subFpSelect" onchange="applySubOptimizations()" style="margin-bottom:10px;">
+            <option value="chrome" selected>Chrome (پیش‌فرض پیشنهادی)</option>
+            <option value="firefox">Firefox</option>
+            <option value="safari">Safari (iOS / macOS)</option>
+            <option value="edge">Edge</option>
+            <option value="random">Randomized (تصادفی)</option>
+          </select>
+        </div>
+
+        <!-- آکاردئون پیشرفته Jasaz -->
+        <div style="border:2px dashed var(--border); border-radius:var(--radius-sm); padding:10px 14px; background:var(--surface); margin-top:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAdvancedJasazParams()">
+            <span style="font-size:0.8125rem; font-weight:700;">⚙️ تنظیمات پیشرفته Cipher Suites و FinalMask (اختیاری)</span>
+            <span id="advJasazArrow">▼</span>
+          </div>
+
+          <div id="advJasazFields" style="display:none; margin-top:12px;" class="space-y-2">
+            <label>Cipher Suites (<code>cs</code>):</label>
+            <textarea id="subCsInput" style="height:70px; font-size:0.75rem;" oninput="applySubOptimizations()"></textarea>
+            <label>FinalMask / Fragment JSON (<code>fm</code>):</label>
+            <textarea id="subFmInput" style="height:75px; font-size:0.75rem;" oninput="applySubOptimizations()"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">لینک‌های اتصال و اشتراک کاربران</span>
+          <span class="badge">GENERATED LINKS</span>
         </div>
         <div id="subLinks">در حال دریافت لینک‌ها...</div>
       </div>
@@ -658,23 +706,64 @@
       }, 150);
     }
 
-    function renderSubLinks(links) {
-      if (!links) return;
+    let rawSubLinks = null;
+
+    const DEFAULT_JASAZ_CS = 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256';
+    const DEFAULT_JASAZ_FM = '{"tcp":[{"type":"fragment","settings":{"packets":"tlshello","lengths":["0","104","1"],"delays":["0"],"maxSplit":"0"}},{"type":"fragment","settings":{"packets":"1-1","lengths":["114","1"],"delays":["1"],"maxSplit":"11"}}]}';
+
+    function initJasazDefaults() {
+      const cs = document.getElementById('subCsInput');
+      const fm = document.getElementById('subFmInput');
+      if (cs && !cs.value) cs.value = DEFAULT_JASAZ_CS;
+      if (fm && !fm.value) fm.value = DEFAULT_JASAZ_FM;
+    }
+
+    function toggleAdvancedJasazParams() {
+      const fields = document.getElementById('advJasazFields');
+      const arrow = document.getElementById('advJasazArrow');
+      const isHidden = fields.style.display === 'none';
+      fields.style.display = isHidden ? 'block' : 'none';
+      arrow.textContent = isHidden ? '▲' : '▼';
+    }
+
+    function applySubOptimizations() {
+      if (!rawSubLinks) return;
+
+      const hasFrag = document.getElementById('subFragmentToggle').checked;
+      const hasEch = document.getElementById('subEchToggle').checked;
+      const fp = document.getElementById('subFpSelect').value || 'chrome';
+      const cs = document.getElementById('subCsInput').value.trim();
+
+      const params = new URLSearchParams();
+      if (hasFrag) params.set('fragment', '1');
+      if (hasEch) params.set('ech', '1');
+      if (fp) params.set('fp', fp);
+      if (cs && cs !== DEFAULT_JASAZ_CS) params.set('cs', cs);
+
+      const qs = params.toString() ? `?${params.toString()}` : '';
+
       const container = document.getElementById('subLinks');
       container.innerHTML = `
         <div class="sub-item">
-          <span><strong>V2RAY:</strong> ${links.وی۲ری}</span>
-          <button class="btn btn-secondary" onclick="copyText('${links.وی۲ری}')">کپی</button>
+          <span><strong>V2RAY (با بهینه‌سازی):</strong> ${rawSubLinks.وی۲ری}${qs}</span>
+          <button class="btn btn-secondary" onclick="copyText('${rawSubLinks.وی۲ری}${qs}')">کپی</button>
         </div>
         <div class="sub-item">
-          <span><strong>CLASH:</strong> ${links.کلش}</span>
-          <button class="btn btn-secondary" onclick="copyText('${links.کلش}')">کپی</button>
+          <span><strong>CLASH / MIHOMO:</strong> ${rawSubLinks.کلش}${qs}</span>
+          <button class="btn btn-secondary" onclick="copyText('${rawSubLinks.کلش}${qs}')">کپی</button>
         </div>
         <div class="sub-item">
-          <span><strong>UNIVERSAL:</strong> ${links.عمومی}</span>
-          <button class="btn btn-secondary" onclick="copyText('${links.عمومی}')">کپی</button>
+          <span><strong>UNIVERSAL:</strong> ${rawSubLinks.عمومی}${qs}</span>
+          <button class="btn btn-secondary" onclick="copyText('${rawSubLinks.عمومی}${qs}')">کپی</button>
         </div>
       `;
+    }
+
+    function renderSubLinks(links) {
+      if (!links) return;
+      rawSubLinks = links;
+      initJasazDefaults();
+      applySubOptimizations();
     }
 
     let dailyProxies = [];
