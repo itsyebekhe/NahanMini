@@ -77,6 +77,7 @@ export default {
     const تطابق_تنظیمات = مسیر_جاری === `${پیشوند}/api/settings` || مسیر_جاری === "/api/settings";
     const تطابق_وی۲ری = مسیر_جاری === `${پیشوند}/${وی۲ری}`;
     const تطابق_کلش = مسیر_جاری === `${پیشوند}/${کلش}`;
+    const تطابق_جیسان = مسیر_جاری === `${پیشوند}/json` || مسیر_جاری === "/json";
     const تطابق_تجمیع = مسیر_جاری === `${پیشوند}/info`;
     const تطابق_اشتراک = مسیر_جاری === پیشوند;
     const مسیر_ریشه = مسیر_جاری === "/" || مسیر_جاری === "";
@@ -116,6 +117,9 @@ export default {
       }
       else if (تطابق_کلش) {
         return پیکربندی_کلش(درخواست.headers.get("Host"), url);
+      }
+      else if (تطابق_جیسان) {
+        return پیکربندی_جیسان(درخواست.headers.get("Host"), url);
       }
       else if (تطابق_تجمیع) {
         return اطلاعات_تجمیعی(درخواست.headers.get("Host"));
@@ -308,11 +312,16 @@ function ساخت_لیست_گره_ها(hostName) {
   }));
 }
 
+const CS_DEFAULT_STR = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256";
+const FM_DEFAULT_STR = '{"tcp":[{"type":"fragment","settings":{"packets":"tlshello","lengths":["0","104","1"],"delays":["0"],"maxSplit":"0"}},{"type":"fragment","settings":{"packets":"1-1","lengths":["114","1"],"delays":["1"],"maxSplit":"11"}}]}';
+const ECH_DEFAULT_SERVER = "cloudflare-ech.com+udp://1.1.1.1";
+
 function پیکربندی_وی۲ری(hostName, url = new URL(`https://${hostName}`)) {
   const گره_ها = ساخت_لیست_گره_ها(hostName);
   const با_فرگمنت = url.searchParams.get("fragment") === "1";
   const با_ای‌سی‌اچ = url.searchParams.get("ech") === "1";
   const اثر_انگشت = url.searchParams.get("fp") || "chrome";
+  const cs_val = url.searchParams.get("cs") || CS_DEFAULT_STR;
 
   const پیکربندی_ها = گره_ها.map((نود) => {
     const مسیر_پروکسی = نود.proxyIp ? `/${encodeURI(مسیر_اشتراک)}?proxyip=${encodeURIComponent(نود.proxyIp)}` : `/${encodeURI(مسیر_اشتراک)}`;
@@ -320,16 +329,99 @@ function پیکربندی_وی۲ری(hostName, url = new URL(`https://${hostName
     if (با_فرگمنت) برچسب += " [Frag]";
     if (با_ای‌سی‌اچ) برچسب += " [ECH]";
 
-    let لینک = `${ویلس}://${شناسه_تایید}@${نود.cleanIp}:443?encryption=none&security=tls&sni=${hostName}&fp=${اثر_انگشت}&type=ws&host=${hostName}&path=${encodeURIComponent(مسیر_پروکسی)}`;
+    let پارامترها = `encryption=none&security=tls&sni=${hostName}&fp=${اثر_انگشت}&type=ws&host=${hostName}&path=${encodeURIComponent(مسیر_پروکسی)}`;
 
-    // افزودن فلگ‌های بهینه‌ساز Fragment و ECH به لینک VLESS
-    if (با_فرگمنت) لینک += "&fragment=104,1,114,1,tlshello";
-    if (با_ای‌سی‌اچ) لینک += "&ech=1";
+    if (با_فرگمنت) {
+      پارامترها += `&cs=${encodeURIComponent(cs_val)}&fm=${encodeURIComponent(FM_DEFAULT_STR)}`;
+    }
+    if (با_ای‌سی‌اچ) {
+      پارامترها += `&ech=${encodeURIComponent(ECH_DEFAULT_SERVER)}`;
+    }
 
-    return `${لینک}#${encodeURIComponent(برچسب)}`;
+    return `${ویلس}://${شناسه_تایید}@${نود.cleanIp}:443?${پارامترها}#${encodeURIComponent(برچسب)}`;
   });
 
   return new Response(پیکربندی_ها.join("\n"));
+}
+
+function پیکربندی_جیسان(hostName, url = new URL(`https://${hostName}`)) {
+  const گره_ها = ساخت_لیست_گره_ها(hostName);
+  const با_فرگمنت = url.searchParams.get("fragment") !== "0";
+  const با_ای‌سی‌اچ = url.searchParams.get("ech") === "1";
+  const اثر_انگشت = url.searchParams.get("fp") || "chrome";
+  const cs_val = url.searchParams.get("cs") || CS_DEFAULT_STR;
+
+  let finalmaskObj;
+  try { finalmaskObj = JSON.parse(FM_DEFAULT_STR); } catch { finalmaskObj = {}; }
+
+  const لیست_جیسان = گره_ها.map((نود) => {
+    const مسیر_پروکسی = نود.proxyIp ? `/${encodeURI(مسیر_اشتراک)}?proxyip=${encodeURIComponent(نود.proxyIp)}` : `/${encodeURI(مسیر_اشتراک)}`;
+    const برچسب = `[${نود.group || "عمومی"}] ${نود.name || نود.cleanIp}`;
+
+    const tlsSettings = {
+      allowInsecure: false,
+      alpn: ["http/1.1"],
+      fingerprint: اثر_انگشت,
+      serverName: hostName,
+      cipherSuites: cs_val
+    };
+
+    if (با_ای‌سی‌اچ) {
+      tlsSettings.echConfigList = ECH_DEFAULT_SERVER;
+    }
+
+    const streamSettings = {
+      network: "ws",
+      security: "tls",
+      tlsSettings: tlsSettings,
+      wsSettings: {
+        host: hostName,
+        path: مسیر_پروکسی
+      },
+      sockopt: {
+        domainStrategy: "UseIP"
+      }
+    };
+
+    if (با_فرگمنت) {
+      streamSettings.finalmask = finalmaskObj;
+    }
+
+    return {
+      remarks: برچسب,
+      dns: {
+        hosts: {
+          "one.one.one.one": ["1.1.1.1", "1.0.0.1"],
+          "dns.google": ["8.8.8.8", "8.8.4.4"]
+        },
+        servers: ["https://cloudflare-dns.com/dns-query", "223.5.5.5"]
+      },
+      inbounds: [
+        { listen: "127.0.0.1", port: 10808, protocol: "socks", settings: { auth: "noauth", udp: true } },
+        { listen: "127.0.0.1", port: 10809, protocol: "http" }
+      ],
+      log: { loglevel: "warning" },
+      outbounds: [
+        {
+          protocol: "vless",
+          settings: {
+            address: نود.cleanIp,
+            encryption: "none",
+            id: شناسه_تایید,
+            port: 443
+          },
+          streamSettings: streamSettings,
+          tag: "proxy"
+        },
+        { protocol: "freedom", tag: "direct" },
+        { protocol: "blackhole", tag: "block" }
+      ]
+    };
+  });
+
+  return new Response(JSON.stringify(لیست_جیسان, null, 2), {
+    headers: { "Content-Type": "application/json;charset=utf-8" }
+  });
 }
 
 function پیکربندی_کلش(hostName, url = new URL(`https://${hostName}`)) {
@@ -465,6 +557,7 @@ async function مدیریت_تنظیمات(درخواست, env) {
       لینک_های_اشتراک: {
         وی۲ری: `${آدرس_پایه}/${وی۲ری}`,
         کلش: `${آدرس_پایه}/${کلش}`,
+        جیسان: `${آدرس_پایه}/json`,
         عمومی: آدرس_پایه,
         اطلاعات: `${آدرس_پایه}/info`,
       },
