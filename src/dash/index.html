@@ -561,13 +561,42 @@
         </div>
         <div class="grid-2">
           <div>
-            <label>آدرس‌های تمیز (CLEAN IPS - سطر به سطر)</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label style="margin:0;">آدرس‌های تمیز (CLEAN IPS - سطر به سطر)</label>
+              <button type="button" class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem; min-height:26px;" onclick="openCleanIpPanel()">⚡ کلین‌ آی‌پی‌های اپراتورها</button>
+            </div>
             <textarea id="cleanIps" placeholder="openai.com&#10;104.16.0.1"></textarea>
           </div>
           <div>
-            <label>پروکسی‌های تی‌سی‌پی (PROXY IPS - سطر به سطر)</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label style="margin:0;">پروکسی‌های تی‌سی‌پی (PROXY IPS - سطر به سطر)</label>
+              <button type="button" class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem; min-height:26px;" onclick="openDailyProxyModal()">⚡ پروکسی‌های NiREvil</button>
+            </div>
             <textarea id="proxyIps" placeholder="proxyip.cmliussss.net&#10;1.2.3.4:443"></textarea>
           </div>
+        </div>
+
+        <!-- پنل کلین آی‌پی‌های تاییدشده اپراتوری (cf-clean-ips) -->
+        <div id="cleanIpPanel" style="display:none; margin-top:20px; border-top:2px dashed var(--border); padding-top:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <span class="card-title" style="font-size:1rem;">کلین آی‌پی‌های تفکیک‌شده اپراتورها (Rododo)</span>
+              <span class="badge" id="cleanIpLastUpdate" style="margin-right:6px;">در حال بارگذاری...</span>
+            </div>
+            <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="closeCleanIpPanel()">بستن ✕</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 2fr 1.5fr auto; gap:8px; margin-bottom:12px;" class="grid-2">
+            <input type="text" id="cleanIpSearchInput" placeholder="جستجو بر اساس IP، اپراتور یا منبع..." oninput="filterCleanIps()" style="margin:0;" />
+            <select id="cleanIpOperatorSelect" onchange="filterCleanIps()" style="margin:0;">
+              <option value="">همه اپراتورها</option>
+            </select>
+            <button class="btn" onclick="addRandomCleanIps(5)" title="افزودن ۵ آی‌پی تصادفی از این فیلتر">🎲 افزودن ۵ تای تصادفی</button>
+          </div>
+
+          <div id="cleanIpLoading" style="font-family:'JetBrains Mono'; font-size:0.8125rem; text-align:center; padding:15px;">در حال دریافت کلین آی‌پی‌ها از GitHub / jsDelivr...</div>
+          
+          <div id="cleanIpListContainer" style="max-height: 280px; overflow-y: auto; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--surface); display: none;"></div>
         </div>
 
         <!-- پنل پروکسی‌های روزانه گیت‌هاب (ضد خطای ۱۱۰۱) -->
@@ -823,6 +852,179 @@
       rawSubLinks = links;
       initJasazDefaults();
       applySubOptimizations();
+    }
+
+    let allCleanIps = [];
+    let filteredCleanIps = [];
+
+    const OPERATOR_NAMES = {
+      MCI: "همراه اول (MCI)",
+      MTN: "ایرانسل (MTN)",
+      RTL: "رایتل (RTL)",
+      SHT: "شاتل (SHT)",
+      AST: "آسیاتک (AST)",
+      MBT: "مبین‌نت (MBT)",
+      HWB: "های‌وب (HWB)",
+      PRS: "پارس‌آنلاین (PRS)",
+      MKH: "مخابرات (MKH)",
+      CFY: "کلودفلر پرسرعت (CFY)",
+      ZTL: "زیتل (ZTL)",
+      RSP: "رسپینا (RSP)",
+      PSM: "پیشگامان (PSM)",
+      PTK: "پتیاک (PTK)",
+      DBN: "دیده‌بان‌نت (DBN)",
+      AFN: "افرانیک (AFN)",
+      APT: "آپتل (APT)",
+      ARX: "آریانا (ARX)",
+      ASK: "عصر تلکام (ASK)",
+      ATC: "ارتباطات ثابت (ATC)",
+      FNP: "فناپ (FNP)",
+      FNV: "فناوا (FNV)",
+      RYN: "رایان‌نت (RYN)",
+      SBN: "صبانت (SBN)",
+      SHM: "شمیم (SHM)",
+      SMT: "سامانت (SMT)"
+    };
+
+    async function openCleanIpPanel() {
+      const panel = document.getElementById('cleanIpPanel');
+      panel.style.display = 'block';
+      if (allCleanIps.length === 0) {
+        await loadCleanIps();
+      }
+    }
+
+    function closeCleanIpPanel() {
+      document.getElementById('cleanIpPanel').style.display = 'none';
+    }
+
+    async function loadCleanIps() {
+      const loading = document.getElementById('cleanIpLoading');
+      const container = document.getElementById('cleanIpListContainer');
+      loading.style.display = 'block';
+      container.style.display = 'none';
+
+      const sources = [
+        "https://raw.githubusercontent.com/RododoIsHere/cf-clean-ips/refs/heads/main/list.json",
+        "https://cdn.jsdelivr.net/gh/RododoIsHere/cf-clean-ips@main/list.json"
+      ];
+
+      let data = null;
+      for (const url of sources) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            data = await res.json();
+            break;
+          }
+        } catch (e) {
+          console.warn(`[CleanIP] Failed to fetch from ${url}`);
+        }
+      }
+
+      if (!data || !Array.isArray(data.ipv4)) {
+        loading.textContent = '✕ خطا در بارگذاری کلین آی‌پی‌ها از GitHub و jsDelivr.';
+        return;
+      }
+
+      if (data.last_update) {
+        document.getElementById('cleanIpLastUpdate').textContent = `بروزرسانی: ${data.last_update.split(' ')[0]}`;
+      }
+
+      allCleanIps = data.ipv4.filter(item => item && item.ip);
+      loading.style.display = 'none';
+      container.style.display = 'block';
+      populateCleanIpOperators();
+      filterCleanIps();
+    }
+
+    function populateCleanIpOperators() {
+      const select = document.getElementById('cleanIpOperatorSelect');
+      const opCounts = {};
+
+      allCleanIps.forEach(item => {
+        const op = item.operator || "سایر";
+        opCounts[op] = (opCounts[op] || 0) + 1;
+      });
+
+      const options = ['<option value="">همه اپراتورها (' + allCleanIps.length + ')</option>'];
+      Object.keys(opCounts).sort().forEach(op => {
+        const label = OPERATOR_NAMES[op] || op;
+        options.push(`<option value="${op}">${label} (${opCounts[op]})</option>`);
+      });
+      select.innerHTML = options.join('');
+    }
+
+    function filterCleanIps() {
+      const search = document.getElementById('cleanIpSearchInput').value.toLowerCase().trim();
+      const operator = document.getElementById('cleanIpOperatorSelect').value;
+
+      filteredCleanIps = allCleanIps.filter(item => {
+        const matchesOp = !operator || item.operator === operator;
+        const matchesSearch = !search ||
+          item.ip.toLowerCase().includes(search) ||
+          (item.operator && item.operator.toLowerCase().includes(search)) ||
+          (item.provider && item.provider.toLowerCase().includes(search)) ||
+          (OPERATOR_NAMES[item.operator] && OPERATOR_NAMES[item.operator].toLowerCase().includes(search));
+        return matchesOp && matchesSearch;
+      });
+
+      renderCleanIpList();
+    }
+
+    function renderCleanIpList() {
+      const container = document.getElementById('cleanIpListContainer');
+      if (filteredCleanIps.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:15px; font-size:0.8125rem;">هیچ کلین آی‌پی مطابق با فیلتر یافت نشد.</div>';
+        return;
+      }
+
+      container.innerHTML = filteredCleanIps.slice(0, 100).map(item => {
+        const opTitle = OPERATOR_NAMES[item.operator] || item.operator || "سایر";
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; margin-bottom:6px; font-size:0.8125rem;">
+            <div>
+              <span style="font-family:'JetBrains Mono'; font-weight:700;">${item.ip}</span>
+              <span class="badge" style="margin-right:6px; font-size:0.6875rem;">${opTitle}</span>
+              <span style="color:var(--text-muted); font-size:0.75rem; margin-right:6px;">منبع: ${item.provider || 'CF'}</span>
+            </div>
+            <button class="btn" style="padding:4px 8px; font-size:0.75rem; min-height:28px;" onclick="addSingleCleanIp('${item.ip}')">+ افزودن</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addSingleCleanIp(ip) {
+      const textarea = document.getElementById('cleanIps');
+      const currentList = textarea.value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!currentList.includes(ip)) {
+        currentList.push(ip);
+        textarea.value = currentList.join('\n');
+        updateDropdowns();
+        showToast(`✓ آی‌پی تمیز ${ip} به لیست اضافه شد!`, 'success');
+      } else {
+        showToast(`آی‌پی ${ip} قبلاً در لیست وجود دارد.`, '');
+      }
+    }
+
+    function addRandomCleanIps(count) {
+      if (filteredCleanIps.length === 0) return alert('هیچ کلین آی‌پی در فیلتر جاری موجود نیست.');
+      const textarea = document.getElementById('cleanIps');
+      const currentList = textarea.value.split('\n').map(s => s.trim()).filter(Boolean);
+      const shuffled = [...filteredCleanIps].sort(() => 0.5 - Math.random());
+      let added = 0;
+
+      for (const item of shuffled) {
+        if (!currentList.includes(item.ip)) {
+          currentList.push(item.ip);
+          added++;
+          if (added >= count) break;
+        }
+      }
+
+      textarea.value = currentList.join('\n');
+      updateDropdowns();
+      showToast(`✓ تعداد ${added} کلین آی‌پی تصادفی به لیست افزوده شد!`, 'success');
     }
 
     let dailyProxies = [];
