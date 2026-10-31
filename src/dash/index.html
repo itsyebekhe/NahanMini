@@ -830,25 +830,25 @@
 
       const qs = params.toString() ? `?${params.toString()}` : '';
 
+      const items = [
+        { title: "V2RAY (PattNG / Xray URI)", url: `${rawSubLinks.وی۲ری}${qs}` },
+        { title: "خروجی JSON کامل (PattN / iOS / Streisand)", url: `${rawSubLinks.جیسان}${qs}` },
+        { title: "CLASH / MIHOMO (Meta YAML)", url: `${rawSubLinks.کلش}${qs}` },
+        { title: "UNIVERSAL (اشتراک عمومی)", url: `${rawSubLinks.عمومی}${qs}` }
+      ];
+
       const container = document.getElementById('subLinks');
-      container.innerHTML = `
-        <div class="sub-item">
-          <span><strong>V2RAY (PattNG / URI):</strong> ${rawSubLinks.وی۲ری}${qs}</span>
-          <button class="btn btn-secondary" onclick="copyText('${rawSubLinks.وی۲ری}${qs}')">کپی</button>
+      container.innerHTML = items.map(item => `
+        <div class="sub-item" style="flex-direction: column; align-items: stretch; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <strong style="font-size: 0.85rem;">${item.title}</strong>
+            <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.75rem; min-height: 32px;" onclick="copyText('${item.url}')">کپی لینک 📋</button>
+          </div>
+          <div dir="ltr" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; word-break: break-all; text-align: left; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; user-select: all; box-shadow: inset 1px 1px 0px var(--border);">
+            ${item.url}
+          </div>
         </div>
-        <div class="sub-item">
-          <span><strong>خروجی JSON کامل (PattN / iOS / Streisand):</strong> ${rawSubLinks.جیسان}${qs}</span>
-          <button class="btn btn-secondary" onclick="copyText('${rawSubLinks.جیسان}${qs}')">کپی</button>
-        </div>
-        <div class="sub-item">
-          <span><strong>CLASH / MIHOMO:</strong> ${rawSubLinks.کلش}${qs}</span>
-          <button class="btn btn-secondary" onclick="copyText('${rawSubLinks.کلش}${qs}')">کپی</button>
-        </div>
-        <div class="sub-item">
-          <span><strong>UNIVERSAL:</strong> ${rawSubLinks.عمومی}${qs}</span>
-          <button class="btn btn-secondary" onclick="copyText('${rawSubLinks.عمومی}${qs}')">کپی</button>
-        </div>
-      `;
+      `).join('');
     }
 
     function renderSubLinks(links) {
