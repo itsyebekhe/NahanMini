@@ -735,15 +735,18 @@
         document.getElementById('proxyIps').value = (data.آی_پی_های_پروکسی || []).join('\n');
         mappedNodes = data.نگاشت_گره_ها || [];
 
-        renderSubLinks(data.لینک_های_اشتراک);
+         renderSubLinks(data.لینک_های_اشتراک);
         updateDropdowns();
         renderMappingTable();
+
+        // بررسی نسخه با مقدار دریافتی از ورکر
+        const installedVer = data.نسخه || "1.0.0";
+        checkVersionUpdate(installedVer);
       } catch (err) {
         showToast('خطا در دریافت اطلاعات سرور.', 'error');
       }
     }
 
-    const CURRENT_VERSION = "0.0.3";
     const VERSION_SOURCES = [
       "https://raw.githubusercontent.com/itsyebekhe/NahanMini/main/version.json",
       "https://cdn.jsdelivr.net/gh/itsyebekhe/NahanMini@main/version.json"
@@ -757,16 +760,16 @@
       }, 150);
     }
 
-    async function checkVersionUpdate() {
-      document.getElementById('currentVerBadge').textContent = `v${CURRENT_VERSION}`;
-      document.getElementById('currentVerText').textContent = `v${CURRENT_VERSION}`;
+    async function checkVersionUpdate(currentVer) {
+      document.getElementById('currentVerBadge').textContent = `v${currentVer}`;
+      document.getElementById('currentVerText').textContent = `v${currentVer}`;
 
       for (const url of VERSION_SOURCES) {
         try {
           const res = await fetch(url, { cache: "no-store" });
           if (res.ok) {
             const data = await res.json();
-            if (data.version && isNewerVersion(data.version, CURRENT_VERSION)) {
+            if (data.version && isNewerVersion(data.version, currentVer)) {
               document.getElementById('latestVerText').textContent = `v${data.version}`;
               if (data.jasazUrl) {
                 document.getElementById('jasazUpdateBtn').href = data.jasazUrl;
@@ -780,8 +783,8 @@
     }
 
     function isNewerVersion(remote, local) {
-      const r = remote.replace(/^v/, '').split('.').map(Number);
-      const l = local.replace(/^v/, '').split('.').map(Number);
+      const r = String(remote).replace(/^v/, '').split('.').map(Number);
+      const l = String(local).replace(/^v/, '').split('.').map(Number);
       for (let i = 0; i < Math.max(r.length, l.length); i++) {
         const rv = r[i] || 0;
         const lv = l[i] || 0;
@@ -790,9 +793,6 @@
       }
       return false;
     }
-
-    // بررسی نسخه پس از لود صفحه
-    checkVersionUpdate();
 
     let rawSubLinks = null;
 
