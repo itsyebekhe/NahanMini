@@ -406,12 +406,28 @@
   <div class="container">
     <div class="header">
       <div>
-        <span class="badge">SYSTEM DOCK</span>
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <span class="badge">SYSTEM DOCK</span>
+          <span class="badge" style="background:var(--card-bg);" id="currentVerBadge">v1.0.0</span>
+        </div>
         <h1>پنل مدیریت سرور</h1>
       </div>
       <div class="header-actions">
         <button class="btn btn-secondary" onclick="toggleTheme()" id="themeBtn">🌙 تم</button>
         <button class="btn btn-secondary" onclick="logout()">خروج ✕</button>
+      </div>
+    </div>
+
+    <!-- بنر اطلاع‌رسانی نسخه جدید با Jasaz -->
+    <div id="updateBanner" class="alert-banner" style="display:none; background:#E0F2FE; color:#0369A1; border-color:var(--border);">
+      <div class="alert-banner-content">
+        <div>
+          <h3 style="color:inherit;">🚀 نسخه جدید نهان‌مینی (<span id="latestVerText"></span>) در دسترس است!</h3>
+          <p style="color:inherit;">شما از نسخه <span id="currentVerText">v1.0.0</span> استفاده می‌کنید. جهت دریافت آخرین بهبودها و ویژگی‌های امنیتی، ورکر خود را با یک کلیک در جاساز به‌روزرسانی کنید.</p>
+        </div>
+        <a id="jasazUpdateBtn" href="https://jasaz.pages.dev/?preset=nahanmini" target="_blank" rel="noopener noreferrer" class="btn" style="background:var(--primary); color:#1C293C; text-decoration:none;">
+          ⚡ به‌روزرسانی با جاساز
+        </a>
       </div>
     </div>
 
@@ -698,6 +714,12 @@
       }
     }
 
+    const CURRENT_VERSION = "1.0.0";
+    const VERSION_SOURCES = [
+      "https://raw.githubusercontent.com/itsyebekhe/NahanMini/main/version.json",
+      "https://cdn.jsdelivr.net/gh/itsyebekhe/NahanMini@main/version.json"
+    ];
+
     function goToSecurityTab() {
       const securityTabBtn = document.querySelectorAll('.dock-item')[4];
       switchTab('tab-security', securityTabBtn);
@@ -705,6 +727,43 @@
         document.getElementById('newPassword').focus();
       }, 150);
     }
+
+    async function checkVersionUpdate() {
+      document.getElementById('currentVerBadge').textContent = `v${CURRENT_VERSION}`;
+      document.getElementById('currentVerText').textContent = `v${CURRENT_VERSION}`;
+
+      for (const url of VERSION_SOURCES) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.version && isNewerVersion(data.version, CURRENT_VERSION)) {
+              document.getElementById('latestVerText').textContent = `v${data.version}`;
+              if (data.jasazUrl) {
+                document.getElementById('jasazUpdateBtn').href = data.jasazUrl;
+              }
+              document.getElementById('updateBanner').style.display = 'block';
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    function isNewerVersion(remote, local) {
+      const r = remote.replace(/^v/, '').split('.').map(Number);
+      const l = local.replace(/^v/, '').split('.').map(Number);
+      for (let i = 0; i < Math.max(r.length, l.length); i++) {
+        const rv = r[i] || 0;
+        const lv = l[i] || 0;
+        if (rv > lv) return true;
+        if (rv < lv) return false;
+      }
+      return false;
+    }
+
+    // بررسی نسخه پس از لود صفحه
+    checkVersionUpdate();
 
     let rawSubLinks = null;
 
