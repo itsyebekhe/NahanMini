@@ -1,7 +1,7 @@
 import { connect } from "cloudflare:sockets";
 
 // بخش پیکربندی
-const نسخه_فعلی = "0.0.4";
+const نسخه_فعلی = "0.0.5";
 let مسیر_اشتراک = "مسیر-اشتراک";
 let وب_سایت_استتار;
 let شناسه_تایید;
