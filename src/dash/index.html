@@ -937,7 +937,7 @@
       if (blockAds) jsonParams.set('block_ads', '1');
       const jsonQs = jsonParams.toString() ? `?${jsonParams.toString()}` : '';
 
-      const items = [
+      window.currentSubItems = [
         { title: "V2RAY (PattNG / Xray URI)", url: `${rawSubLinks.وی۲ری}${qs}` },
         { title: "خروجی JSON کامل (PattN / iOS / Streisand)", url: `${rawSubLinks.جیسان}${jsonQs}` },
         { title: "CLASH / MIHOMO (Meta YAML)", url: `${rawSubLinks.کلش}${qs}` },
@@ -945,13 +945,13 @@
       ];
 
       const container = document.getElementById('subLinks');
-      container.innerHTML = items.map(item => `
+      container.innerHTML = window.currentSubItems.map((item, idx) => `
         <div class="sub-item" style="flex-direction: column; align-items: stretch; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <strong style="font-size: 0.85rem;">${item.title}</strong>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; min-height: 32px;" onclick="showQrModal('${item.title}', '${item.url}')">بارکد QR 📱</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; min-height: 32px;" onclick="copyText('${item.url}')">کپی لینک 📋</button>
+              <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; min-height: 32px;" onclick="openQrByIndex(${idx})">بارکد QR 📱</button>
+              <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; min-height: 32px;" onclick="copyText(window.currentSubItems[${idx}].url)">کپی لینک 📋</button>
             </div>
           </div>
           <div dir="ltr" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; word-break: break-all; text-align: left; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; user-select: all; box-shadow: inset 1px 1px 0px var(--border);">
@@ -961,6 +961,50 @@
       `).join('');
     }
 
+    // مدیریت سراسری بارکد QR با پشتیبانی از خطاهای CDN و مسدودی شبکه
+    window.openQrByIndex = function(idx) {
+      if (window.currentSubItems && window.currentSubItems[idx]) {
+        const item = window.currentSubItems[idx];
+        window.showQrModal(item.title, item.url);
+      }
+    };
+
+    window.showQrModal = function(title, text) {
+      document.getElementById('qrModalTitle').textContent = title;
+      const canvasContainer = document.getElementById('qrcodeCanvas');
+      canvasContainer.innerHTML = '';
+
+      if (typeof QRCode !== 'undefined') {
+        try {
+          new QRCode(canvasContainer, {
+            text: text,
+            width: 220,
+            height: 220,
+            colorDark: "#1C293C",
+            colorLight: "#FFFFFF",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          document.getElementById('qrModalOverlay').style.display = 'flex';
+          return;
+        } catch (_) {}
+      }
+
+      // جایگزین تصویری خودکار در صورت لود نشدن یا مسدود بودن کتابخانه در اینترنت کاربر
+      const img = document.createElement('img');
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(text)}`;
+      img.alt = title;
+      img.style.width = '220px';
+      img.style.height = '220px';
+      img.style.display = 'block';
+      img.style.margin = '0 auto';
+      canvasContainer.appendChild(img);
+      document.getElementById('qrModalOverlay').style.display = 'flex';
+    };
+
+    window.closeQrModal = function() {
+      document.getElementById('qrModalOverlay').style.display = 'none';
+    };
+    
     function renderSubLinks(links) {
       if (!links) return;
       rawSubLinks = links;
