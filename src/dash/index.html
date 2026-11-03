@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -400,6 +401,42 @@
     }
     .toast.success { display: block; background: #14532D; color: #BBF7D0; }
     .toast.error { display: block; background: #7F1D1D; color: #FECACA; }
+
+    /* مودال بارکد QR */
+    #qrModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .qr-card {
+      background: #FFFFFF;
+      border: 3px solid #1C293C;
+      border-radius: var(--radius-md);
+      box-shadow: 6px 6px 0px #1C293C;
+      padding: 24px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      color: #1C293C;
+    }
+    #qrcodeCanvas {
+      margin: 16px auto;
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+      background: #FFFFFF;
+      border: 2px solid #1C293C;
+      border-radius: var(--radius-sm);
+    }
+    #qrcodeCanvas img {
+      margin: 0 auto;
+    }
   </style>
 </head>
 <body>
@@ -501,6 +538,43 @@
         </div>
         <label>وب‌سایت استتار (FAKE WEB URL)</label>
         <input type="text" id="fakeWeb" placeholder="https://example.com" />
+      </div>
+
+      <!-- پشتیبان‌گیری و بازیابی تنظیمات با ۱ کلیک -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">پشتیبان‌گیری و بازیابی تنظیمات</span>
+          <span class="badge">BACKUP & RESTORE</span>
+        </div>
+        <div class="grid-2">
+          <div>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">دریافت فایل پشتیبان کامل از نودها، آی‌پی‌ها و پیکربندی D1:</p>
+            <button type="button" class="btn btn-secondary" style="width:100%;" onclick="exportBackup()">💾 خروجی پشتیبان (Export JSON)</button>
+          </div>
+          <div>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">بارگذاری تنظیمات قبلی از روی فایل پشتیبان JSON:</p>
+            <input type="file" id="backupFileInput" accept=".json" style="display:none;" onchange="importBackup(event)" />
+            <button type="button" class="btn btn-secondary" style="width:100%;" onclick="document.getElementById('backupFileInput').click()">📂 بازیابی فایل (Import JSON)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- تنظیمات هوشمند روتینگ (Bypass IR / AdBlock) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">قوانین روتینگ هوشمند (مخصوص خروجی JSON)</span>
+          <span class="badge">ROUTING</span>
+        </div>
+        <div class="grid-2">
+          <label class="sub-item" style="cursor:pointer; margin-bottom:0;">
+            <span><strong>🇮🇷 دور زدن سایت‌های ایرانی:</strong> عبور مستقیم سایت‌ها و بانک‌های داخلی (Direct IR)</span>
+            <input type="checkbox" id="bypassIrToggle" onchange="applySubOptimizations()" style="width:20px; height:20px; margin:0;" checked />
+          </label>
+          <label class="sub-item" style="cursor:pointer; margin-bottom:0;">
+            <span><strong>🚫 مسدودسازی تبلیغات:</strong> مسدود کردن دامنه‌های تبلیغاتی مزاحم (AdBlock)</span>
+            <input type="checkbox" id="blockAdsToggle" onchange="applySubOptimizations()" style="width:20px; height:20px; margin:0;" />
+          </label>
+        </div>
       </div>
 
       <!-- کنترل بهینه‌سازی ECH و Fragment (Jasaz Engine) -->
@@ -692,6 +766,16 @@
     </div>
   </div>
 
+  <!-- پاپ‌آپ بارکد QR -->
+  <div id="qrModalOverlay" onclick="if(event.target===this) closeQrModal();">
+    <div class="qr-card">
+      <h3 id="qrModalTitle" style="font-size:1rem; font-weight:800; margin-bottom:4px;">اسکن بارکد اتصال</h3>
+      <p style="font-size:0.75rem; color:#475569;">با دوربین اپلیکیشن (v2rayNG / Streisand) اسکن کنید:</p>
+      <div id="qrcodeCanvas"></div>
+      <button class="btn" style="width:100%;" onclick="closeQrModal()">بستن ✕</button>
+    </div>
+  </div>
+
   <script>
     const apiPath = window.location.pathname.replace(/\/dash$/, '/api/settings');
     let mappedNodes = [];
@@ -830,9 +914,17 @@
 
       const qs = params.toString() ? `?${params.toString()}` : '';
 
+      const bypassIr = document.getElementById('bypassIrToggle')?.checked;
+      const blockAds = document.getElementById('blockAdsToggle')?.checked;
+
+      const jsonParams = new URLSearchParams(params);
+      if (!bypassIr) jsonParams.set('bypass_ir', '0');
+      if (blockAds) jsonParams.set('block_ads', '1');
+      const jsonQs = jsonParams.toString() ? `?${jsonParams.toString()}` : '';
+
       const items = [
         { title: "V2RAY (PattNG / Xray URI)", url: `${rawSubLinks.وی۲ری}${qs}` },
-        { title: "خروجی JSON کامل (PattN / iOS / Streisand)", url: `${rawSubLinks.جیسان}${qs}` },
+        { title: "خروجی JSON کامل (PattN / iOS / Streisand)", url: `${rawSubLinks.جیسان}${jsonQs}` },
         { title: "CLASH / MIHOMO (Meta YAML)", url: `${rawSubLinks.کلش}${qs}` },
         { title: "UNIVERSAL (اشتراک عمومی)", url: `${rawSubLinks.عمومی}${qs}` }
       ];
@@ -842,7 +934,10 @@
         <div class="sub-item" style="flex-direction: column; align-items: stretch; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <strong style="font-size: 0.85rem;">${item.title}</strong>
-            <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.75rem; min-height: 32px;" onclick="copyText('${item.url}')">کپی لینک 📋</button>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; min-height: 32px;" onclick="showQrModal('${item.title}', '${item.url}')">بارکد QR 📱</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; min-height: 32px;" onclick="copyText('${item.url}')">کپی لینک 📋</button>
+            </div>
           </div>
           <div dir="ltr" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; word-break: break-all; text-align: left; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; user-select: all; box-shadow: inset 1px 1px 0px var(--border);">
             ${item.url}

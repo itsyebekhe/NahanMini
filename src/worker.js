@@ -349,15 +349,54 @@ function پیکربندی_جیسان(hostName, url = new URL(`https://${hostName
   const گره_ها = ساخت_لیست_گره_ها(hostName);
   const با_فرگمنت = url.searchParams.get("fragment") !== "0";
   const با_ای‌سی‌اچ = url.searchParams.get("ech") === "1";
+  const دور_زدن_ایران = url.searchParams.get("bypass_ir") !== "0";
+  const مسدودسازی_تبلیغات = url.searchParams.get("block_ads") === "1";
   const اثر_انگشت = url.searchParams.get("fp") || "chrome";
   const cs_val = url.searchParams.get("cs") || CS_DEFAULT_STR;
 
   let finalmaskObj;
   try { finalmaskObj = JSON.parse(FM_DEFAULT_STR); } catch { finalmaskObj = {}; }
 
+  // ساخت قوانین هوشمند روتینگ (Bypass IR / AdBlock)
+  const قوانین_روتینگ = [];
+
+  if (مسدودسازی_تبلیغات) {
+    قوانین_روتینگ.push({
+      type: "field",
+      domain: ["geosite:category-ads-all"],
+      outboundTag: "block"
+    });
+  }
+
+  if (دور_زدن_ایران) {
+    قوانین_روتینگ.push(
+      { type: "field", ip: ["geoip:private", "geoip:ir"], outboundTag: "direct" },
+      { type: "field", domain: ["geosite:private", "geosite:category-ir", "regexp:.*\\.ir$"], outboundTag: "direct" }
+    );
+  }
+
+  // ترافیک پیش‌فرض از پروکسی عبور کند
+  قوانین_روتینگ.push({
+    type: "field",
+    network: "tcp,udp",
+    outboundTag: "proxy"
+  });
+
+  const سرورهای_دی‌ان‌اس = ["https://cloudflare-dns.com/dns-query"];
+  if (دور_زدن_ایران) {
+    سرورهای_دی‌ان‌اس.push({
+      address: "223.5.5.5",
+      domains: ["geosite:category-ir", "domain:ir"],
+      skipFallback: true,
+      tag: "ir-dns"
+    });
+  }
+
   const لیست_جیسان = گره_ها.map((نود) => {
     const مسیر_پروکسی = نود.proxyIp ? `/${encodeURI(مسیر_اشتراک)}?proxyip=${encodeURIComponent(نود.proxyIp)}` : `/${encodeURI(مسیر_اشتراک)}`;
-    const برچسب = `[${نود.group || "عمومی"}] ${نود.name || نود.cleanIp}`;
+    let برچسب = `[${نود.group || "عمومی"}] ${نود.name || نود.cleanIp}`;
+    if (دور_زدن_ایران) برچسب += " [IR-Direct]";
+    if (مسدودسازی_تبلیغات) برچسب += " [AdBlock]";
 
     const tlsSettings = {
       allowInsecure: false,
@@ -395,7 +434,7 @@ function پیکربندی_جیسان(hostName, url = new URL(`https://${hostName
           "one.one.one.one": ["1.1.1.1", "1.0.0.1"],
           "dns.google": ["8.8.8.8", "8.8.4.4"]
         },
-        servers: ["https://cloudflare-dns.com/dns-query", "223.5.5.5"]
+        servers: سرورهای_دی‌ان‌اس
       },
       inbounds: [
         { listen: "127.0.0.1", port: 10808, protocol: "socks", settings: { auth: "noauth", udp: true } },
@@ -416,7 +455,11 @@ function پیکربندی_جیسان(hostName, url = new URL(`https://${hostName
         },
         { protocol: "freedom", tag: "direct" },
         { protocol: "blackhole", tag: "block" }
-      ]
+      ],
+      routing: {
+        domainStrategy: "IPIfNonMatch",
+        rules: قوانین_روتینگ
+      }
     };
   });
 
